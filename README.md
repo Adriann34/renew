@@ -1,6 +1,14 @@
 # Renew
 
-Used PC hardware marketplace — homepage scaffold.
+Renew is a marketplace for buying and selling used PC hardware — GPUs,
+CPUs, and everything in between — built with Next.js 15, TypeScript,
+Tailwind CSS v4, Prisma, and Supabase. Instead of stock photos and seller
+claims, every listing carries a diagnostic report: condition grade,
+benchmark score, and tested power draw, so buyers can trust a used part
+before it ships.
+
+Personal project / portfolio piece — currently a homepage scaffold with
+mock data; auth, payments, and a real database connection are next.
 
 ## Stack
 - Next.js 15 (App Router) + TypeScript
