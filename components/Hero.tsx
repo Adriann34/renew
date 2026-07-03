@@ -24,13 +24,13 @@ export function Hero() {
           <div className="flex flex-wrap gap-3">
             <a
               href="#listings"
-              className="bg-amber text-bg-inset text-[14px] font-medium px-6 h-11 flex items-center rounded-[var(--radius-tag)] hover:bg-amber/90 transition-colors"
+              className="bg-amber text-bg-inset text-[14px] font-medium px-6 h-11 flex items-center rounded-(--radius-tag) hover:bg-amber/90 transition-colors"
             >
               Browse listings
             </a>
             <a
               href="#"
-              className="border border-line text-[14px] px-6 h-11 flex items-center rounded-[var(--radius-tag)] hover:border-ink-dim transition-colors"
+              className="border border-line text-[14px] px-6 h-11 flex items-center rounded-(--radius-tag) hover:border-ink-dim transition-colors"
             >
               Sell your hardware
             </a>

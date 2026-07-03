@@ -18,7 +18,7 @@ export function SellCta() {
           </p>
           <a
             href="#"
-            className="inline-flex items-center bg-teal text-bg-inset text-[14px] font-medium px-6 h-11 rounded-[var(--radius-tag)] hover:bg-teal/90 transition-colors"
+            className="inline-flex items-center bg-teal text-bg-inset text-[14px] font-medium px-6 h-11 rounded-(--radius-tag) hover:bg-teal/90 transition-colors"
           >
             Start your first listing
           </a>

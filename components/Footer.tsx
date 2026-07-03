@@ -6,7 +6,7 @@ export function Footer() {
           <span className="font-display font-semibold text-lg">
             re<span className="text-amber">new</span>
           </span>
-          <p className="text-ink-dim text-[13px] mt-3 max-w-[220px] leading-relaxed">
+          <p className="text-ink-dim text-[13px] mt-3 max-w-55 leading-relaxed">
             Used PC hardware, sold with proof it works.
           </p>
         </div>

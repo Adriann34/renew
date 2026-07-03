@@ -8,7 +8,7 @@ export function ListingCard({ listing }: { listing: Listing }) {
       href={`/listing/${listing.id}`}
       className="group block border border-line bg-bg-elevated hover:border-amber/60 transition-colors"
     >
-      <div className="aspect-[4/3] flex items-center justify-center p-8 border-b border-line">
+      <div className="aspect-4/3 flex items-center justify-center p-8 border-b border-line">
         <GpuMark className="w-full h-full text-ink-dim group-hover:text-amber/80 transition-colors" />
       </div>
 

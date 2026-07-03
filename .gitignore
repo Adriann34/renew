@@ -11,6 +11,7 @@ next-env.d.ts
 CLAUDE.md
 .vscode
 .idea
+.history
 
 # Vercel
 .vercel

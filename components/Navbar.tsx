@@ -1,6 +1,13 @@
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { SignOutButton } from "@/components/auth/SignOutButton";
+import { createClient } from "@/lib/supabase/server";
 
-export function Navbar() {
+export async function Navbar() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-bg/90 backdrop-blur">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center gap-6">
@@ -28,17 +35,26 @@ export function Navbar() {
           </nav>
         </div>
 
-        <div className="flex items-center gap-3">
-          <ThemeToggle />
-          <a
-            href="/signin"
-            className="hidden sm:block text-[13px] text-ink-dim hover:text-ink transition-colors"
-          >
-            Sign in
-          </a>
+        <div className="flex items-center gap-5">
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            {user ? (
+              <>
+                <span className="hidden sm:block text-[13px] text-ink-dim">{user.email}</span>
+                <SignOutButton />
+              </>
+            ) : (
+              <a
+                href="/signin"
+                className="hidden sm:block text-[13px] text-ink-dim hover:text-ink transition-colors"
+              >
+                Sign in
+              </a>
+            )}
+          </div>
           <a
             href="#"
-            className="bg-amber text-bg-inset text-[13px] font-medium px-4 h-9 flex items-center rounded-[var(--radius-tag)] hover:bg-amber/90 transition-colors"
+            className="bg-amber text-bg-inset text-[13px] font-medium px-4 h-9 flex items-center rounded-(--radius-tag) hover:bg-amber/90 transition-colors"
           >
             List an item
           </a>
