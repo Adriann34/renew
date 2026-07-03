@@ -7,8 +7,9 @@ claims, every listing carries a diagnostic report: condition grade,
 benchmark score, and tested power draw, so buyers can trust a used part
 before it ships.
 
-Personal project / portfolio piece — currently a homepage scaffold with
-mock data; auth, payments, and a real database connection are next.
+Personal project / portfolio piece — currently a frontend scaffold with
+mock data. Homepage, FAQ, About/contact, and sign in/sign up pages are
+built; auth, payments, and a real database connection are next.
 
 ## Stack
 - Next.js 15 (App Router) + TypeScript
@@ -45,6 +46,10 @@ compatibility first — v3 plugins/configs don't always drop into v4 cleanly.
 ## What's here
 
 - `app/page.tsx` — homepage, assembles all sections below
+- `app/faq/page.tsx` — grading, buyer protection, and return policy
+- `app/about/page.tsx` — about + contact
+- `app/signin/page.tsx`, `app/signup/page.tsx` — frontend-only auth forms
+  (no backend wired up yet, see [Next steps](#next-steps-in-order))
 - `components/Hero.tsx`, `Navbar.tsx`, `CategoryStrip.tsx`,
   `ListingCard.tsx`, `DiagnosticTag.tsx`, `TrustBar.tsx`, `SellCta.tsx`,
   `Footer.tsx`
@@ -76,7 +81,7 @@ first on reload.
 
 ## Next steps (in order)
 
-1. Wire up Supabase Auth for buyer/seller accounts
+1. Wire up Supabase Auth behind the existing `/signin` and `/signup` forms
 2. Replace `lib/data.ts` with real Prisma queries (`prisma/schema.prisma` →
    `prisma migrate dev` → `prisma generate`)
 3. Build the Express API for anything that shouldn't live in Next route

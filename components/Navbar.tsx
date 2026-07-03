@@ -31,7 +31,7 @@ export function Navbar() {
         <div className="flex items-center gap-3">
           <ThemeToggle />
           <a
-            href="#"
+            href="/signin"
             className="hidden sm:block text-[13px] text-ink-dim hover:text-ink transition-colors"
           >
             Sign in
