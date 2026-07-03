@@ -1,0 +1,54 @@
+// This is a starter schema — we'll expand this together in the next step.
+// Run `npx prisma migrate dev` after setting DATABASE_URL to your Supabase
+// connection string (use the "connection pooling" URL for serverless).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Grade {
+  A
+  B
+  C
+}
+
+enum Category {
+  GPU
+  CPU
+  MOTHERBOARD
+  RAM
+  STORAGE
+  PSU
+  OTHER
+}
+
+model User {
+  id        String    @id @default(uuid())
+  email     String    @unique
+  name      String?
+  createdAt DateTime  @default(now())
+  listings  Listing[]
+}
+
+model Listing {
+  id              String    @id @default(uuid())
+  title           String
+  category        Category
+  price           Int
+  grade           Grade
+  spec            String
+  benchmarkScore  Int
+  benchmarkLabel  String
+  wattageDraw     Int
+  hoursUsed       Int
+  bootVerified    Boolean   @default(false)
+  sellerId        String
+  seller          User      @relation(fields: [sellerId], references: [id])
+  createdAt       DateTime  @default(now())
+}
