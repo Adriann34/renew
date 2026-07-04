@@ -4,13 +4,27 @@ import { formatPrice } from "@/lib/format";
 import type { ListingWithRelations } from "@/lib/listings";
 
 export function ListingCard({ listing }: { listing: ListingWithRelations }) {
+  const conditionPhoto = listing.photos
+    .filter((p) => p.kind === "CONDITION")
+    .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime())[0];
+
   return (
     <a
       href={`/listing/${listing.id}`}
       className="group block border border-line bg-bg-elevated hover:border-amber/60 transition-colors"
     >
-      <div className="aspect-4/3 flex items-center justify-center p-8 border-b border-line">
-        <GpuMark className="w-full h-full text-ink-dim group-hover:text-amber/80 transition-colors" />
+      <div className="aspect-4/3 border-b border-line overflow-hidden">
+        {conditionPhoto ? (
+          <img
+            src={conditionPhoto.url}
+            alt={listing.title}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center p-8">
+            <GpuMark className="w-full h-full text-ink-dim group-hover:text-amber/80 transition-colors" />
+          </div>
+        )}
       </div>
 
       <div className="p-4 space-y-3">

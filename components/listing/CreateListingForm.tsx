@@ -66,7 +66,7 @@ export function CreateListingForm() {
         </p>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
         <aside className="space-y-6 w-full">
           <PhotoWorkspace photos={photos} onPhotosChange={(key, files) => setPhotos((p) => ({ ...p, [key]: files }))} />
 
