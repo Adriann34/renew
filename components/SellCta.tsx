@@ -12,12 +12,13 @@ export function SellCta() {
             List it with proof, not promises.
           </h2>
           <p className="text-ink-dim text-[15px] leading-relaxed max-w-md mb-8">
-            Download our diagnostic tool, run a 5-minute test, and attach the
-            report to your listing. Verified listings sell faster and for
-            better prices.
+            Fill in your diagnostic report — grade, benchmark score, and
+            tested wattage — when you list, then back it up with photos
+            (burn-in test, benchmark screen, physical condition).
+            Proof-backed listings sell faster and for better prices.
           </p>
           <a
-            href="#"
+            href="/sell"
             className="inline-flex items-center bg-teal text-bg-inset text-[14px] font-medium px-6 h-11 rounded-(--radius-tag) hover:bg-teal/90 transition-colors"
           >
             Start your first listing
@@ -26,15 +27,15 @@ export function SellCta() {
 
         <div className="border border-line bg-bg-elevated font-mono text-[13px]">
           <div className="px-4 h-10 flex items-center border-b border-line text-ink-dim text-[10px] uppercase tracking-widest">
-            renew-diag.sh — output
+            diagnostic-report.json
           </div>
           <div className="p-5 space-y-2 text-ink-dim">
-            <p><span className="text-pass">✓</span> GPU detected: RTX 3080 Ti</p>
-            <p><span className="text-pass">✓</span> VRAM check: 12288MB — OK</p>
-            <p><span className="text-pass">✓</span> Thermal test: 68°C @ load</p>
+            <p><span className="text-pass">✓</span> Grade: B — Good condition</p>
             <p><span className="text-pass">✓</span> Time Spy score: 18,340</p>
-            <p><span className="text-amber">→</span> Suggested grade: B</p>
-            <p><span className="text-ink">$</span> report saved to renew_report.json</p>
+            <p><span className="text-pass">✓</span> Draw under load: 350W</p>
+            <p><span className="text-pass">✓</span> Boot verified: PASS</p>
+            <p><span className="text-amber">→</span> Attach photos to back this up</p>
+            <p><span className="text-ink">$</span> report saved to listing draft</p>
           </div>
         </div>
       </div>

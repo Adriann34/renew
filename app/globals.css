@@ -84,7 +84,7 @@ body {
   background-size: 32px 32px;
 }
 
-/* serrated / ticket edge used on diagnostic tags */
+/* serrated / ticket edge used on condition badges */
 .tag-edge-left {
   mask-image: radial-gradient(circle 5px at 0 0, transparent 5px, black 5.5px);
   mask-size: 100% 10px;

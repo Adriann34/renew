@@ -21,9 +21,9 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Renew — Used GPUs & PC Hardware, Bench-Tested",
+  title: "Renew — Used GPUs & PC Hardware, With Diagnostic Reports",
   description:
-    "Buy and sell used GPUs, CPUs, and PC hardware with a diagnostic report on every listing.",
+    "Buy and sell used GPUs, CPUs, and PC hardware with a diagnostic report and photo proof on every listing.",
 };
 
 export default function RootLayout({

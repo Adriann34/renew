@@ -1,8 +1,9 @@
 import { GpuMark } from "@/components/icons/GpuMark";
-import { DiagnosticTag } from "@/components/DiagnosticTag";
-import type { Listing } from "@/lib/data";
+import { ConditionBadge } from "@/components/ConditionBadge";
+import { formatPrice } from "@/lib/format";
+import type { ListingWithRelations } from "@/lib/listings";
 
-export function ListingCard({ listing }: { listing: Listing }) {
+export function ListingCard({ listing }: { listing: ListingWithRelations }) {
   return (
     <a
       href={`/listing/${listing.id}`}
@@ -16,30 +17,21 @@ export function ListingCard({ listing }: { listing: Listing }) {
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-[10px] uppercase tracking-widest text-ink-dim mb-1">
-              {listing.category} · {listing.vramOrSpec}
+              {listing.category} · {listing.spec}
             </p>
             <h3 className="font-display font-medium text-[15px] leading-snug">
               {listing.title}
             </h3>
           </div>
           <p className="font-mono text-amber text-[15px] whitespace-nowrap">
-            {listing.price.toLocaleString()} kr
+            {formatPrice(listing.price)}
           </p>
         </div>
 
-        <DiagnosticTag
-          grade={listing.grade}
-          benchmarkScore={listing.benchmarkScore}
-          benchmarkLabel={listing.benchmarkLabel}
-          wattageDraw={listing.wattageDraw}
-          bootVerified={listing.bootVerified}
-        />
+        <ConditionBadge grade={listing.grade} />
 
-        <div className="flex items-center justify-between text-[11px] text-ink-dim pt-1">
-          <span>{listing.hoursUsed.toLocaleString()} hrs logged</span>
-          <span>
-            {listing.seller} · {listing.location}
-          </span>
+        <div className="text-[11px] text-ink-dim pt-1">
+          {listing.seller.name ?? listing.seller.email} · {listing.location}
         </div>
       </div>
     </a>

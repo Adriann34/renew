@@ -28,6 +28,13 @@ enum Category {
   OTHER
 }
 
+enum PhotoKind {
+  CONDITION
+  BURN_IN
+  BENCHMARK
+  BOOT
+}
+
 model User {
   id        String    @id // matches Supabase auth.users.id — set explicitly, not generated here
   email     String    @unique
@@ -37,18 +44,29 @@ model User {
 }
 
 model Listing {
-  id              String    @id @default(uuid())
+  id              String         @id @default(uuid())
   title           String
   category        Category
   price           Int
   grade           Grade
   spec            String
+  location        String
+  description     String         @default("")
   benchmarkScore  Int
   benchmarkLabel  String
   wattageDraw     Int
-  hoursUsed       Int
-  bootVerified    Boolean   @default(false)
+  bootVerified    Boolean        @default(false)
   sellerId        String
-  seller          User      @relation(fields: [sellerId], references: [id])
-  createdAt       DateTime  @default(now())
+  seller          User           @relation(fields: [sellerId], references: [id])
+  photos          ListingPhoto[]
+  createdAt       DateTime       @default(now())
+}
+
+model ListingPhoto {
+  id        String    @id @default(uuid())
+  listingId String
+  listing   Listing   @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  kind      PhotoKind
+  url       String
+  createdAt DateTime  @default(now())
 }

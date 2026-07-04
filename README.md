@@ -3,9 +3,10 @@
 Renew is a marketplace for buying and selling used PC hardware — GPUs,
 CPUs, and everything in between — built with Next.js 15, TypeScript,
 Tailwind CSS v4, Prisma, and Supabase. Instead of stock photos and seller
-claims, every listing carries a diagnostic report: condition grade,
-benchmark score, and tested power draw, so buyers can trust a used part
-before it ships.
+claims, every listing carries a diagnostic report (condition grade,
+benchmark score, tested power draw) filled in by the seller when they
+list, backed by photo proof, so buyers can trust a used part before it
+ships.
 
 Personal project / portfolio piece. Homepage, FAQ, About/contact, and
 sign in/sign up pages are built. Supabase Auth (email/password + Google)
@@ -64,9 +65,9 @@ compatibility first — v3 plugins/configs don't always drop into v4 cleanly.
 - `components/auth/` — `SignInForm`, `SignUpForm`, `GoogleSignInButton`,
   `SignOutButton`
 - `components/Hero.tsx`, `Navbar.tsx`, `CategoryStrip.tsx`,
-  `ListingCard.tsx`, `DiagnosticTag.tsx`, `TrustBar.tsx`, `SellCta.tsx`,
-  `Footer.tsx` — `Navbar` reads the Supabase session server-side to
-  show sign in vs. account state
+  `ListingCard.tsx`, `ConditionBadge.tsx`, `DiagnosticTag.tsx`,
+  `TrustBar.tsx`, `SellCta.tsx`, `Footer.tsx` — `Navbar` reads the
+  Supabase session server-side to show sign in vs. account state
 - `lib/supabase/{client,server,middleware}.ts` — browser client, server
   client, and the session-refresh helper used by `middleware.ts`
 - `middleware.ts` — refreshes the Supabase session cookie on every request
@@ -82,9 +83,12 @@ compatibility first — v3 plugins/configs don't always drop into v4 cleanly.
 
 The signature element is the **diagnostic tag** (`DiagnosticTag.tsx`) — a
 small inspection-sticker-style readout (grade, benchmark score, wattage
-draw, boot status) attached to every listing. The idea: for *used* hardware,
-trust comes from test data, not stock photography, so the design leans into
-that instead of a generic dark-mode tech-marketplace look.
+draw, boot status) filled in by the seller and shown on the listing,
+backed by their own proof photos. `ConditionBadge.tsx` is the compact
+variant (grade only) used on homepage grid cards. The idea: for *used*
+hardware, trust comes from data and evidence, not stock photography, so
+the design leans into that instead of a generic dark-mode tech-marketplace
+look.
 
 ### Light / dark theme
 
@@ -104,8 +108,9 @@ first on reload.
 
 1. Replace `lib/data.ts` with real Prisma queries against the now-connected
    Supabase Postgres database
-2. Individual listing page + seller dashboard (create/edit listings, upload
-   diagnostic report)
+2. Individual listing page + create-listing flow (seller fills in the
+   diagnostic report and uploads photos backing it up — burn-in test,
+   benchmark screenshot, physical condition)
 3. Build the Express API for anything that shouldn't live in Next route
    handlers (e.g. Stripe webhooks, background jobs)
 4. Stripe Checkout for fixed-price purchases

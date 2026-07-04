@@ -1,23 +1,23 @@
 const items = [
   {
     n: "01",
-    title: "Bench-tested before listing",
-    body: "Sellers run our diagnostic script and attach real benchmark output — not a guess at condition.",
+    title: "Diagnostic report on every listing",
+    body: "Sellers fill in condition grade, benchmark score, and tested wattage — then back it up with photos in the listing.",
   },
   {
     n: "02",
     title: "Grading you can trust",
-    body: "A/B/C grades map to hours logged, thermal wear, and boot stability. No inflated 'like new'.",
+    body: "A/B/C grades map to hours logged and condition, cross-checked against the seller's own proof photos. No inflated 'like new'.",
   },
   {
     n: "03",
     title: "Escrow on every order",
-    body: "Payment releases to the seller only after you confirm the item matches its diagnostic report.",
+    body: "Payment releases to the seller only after you confirm the item matches its diagnostic report and photos.",
   },
   {
     n: "04",
     title: "7-day return window",
-    body: "Bench it yourself. If the numbers don't match the listing, send it back for a full refund.",
+    body: "Check the item yourself. If it doesn't match the report or photos, send it back for a full refund.",
   },
 ];
 

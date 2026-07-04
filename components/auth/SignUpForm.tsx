@@ -12,12 +12,14 @@ export function SignUpForm() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [emailTaken, setEmailTaken] = useState(false);
   const [info, setInfo] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setEmailTaken(false);
     setInfo(null);
 
     if (password !== confirmPassword) {
@@ -39,6 +41,11 @@ export function SignUpForm() {
       return;
     }
 
+    if (data.user?.identities?.length === 0) {
+      setEmailTaken(true);
+      return;
+    }
+
     if (!data.session) {
       setInfo("Check your email to confirm your account, then sign in.");
       return;
@@ -50,6 +57,15 @@ export function SignUpForm() {
 
   return (
     <form onSubmit={handleSubmit} className="border border-line bg-bg-elevated p-6 space-y-5">
+      {emailTaken && (
+        <p className="text-[13px] text-danger">
+          An account with this email already exists.{" "}
+          <a href="/signin" className="underline hover:text-ink transition-colors">
+            Sign in instead
+          </a>
+          .
+        </p>
+      )}
       {error && <p className="text-[13px] text-danger">{error}</p>}
       {info && <p className="text-[13px] text-pass">{info}</p>}
 

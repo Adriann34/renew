@@ -5,9 +5,11 @@ import { TrustBar } from "@/components/TrustBar";
 import { SellCta } from "@/components/SellCta";
 import { Footer } from "@/components/Footer";
 import { ListingCard } from "@/components/ListingCard";
-import { listings } from "@/lib/data";
+import { getListings } from "@/lib/listings";
 
-export default function Home() {
+export default async function Home() {
+  const listings = await getListings();
+
   return (
     <main>
       <Navbar />

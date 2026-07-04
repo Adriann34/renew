@@ -1,0 +1,81 @@
+"use client";
+
+import { useEffect, useRef, useState } from "react";
+
+const inputClass =
+  "w-full border border-line bg-bg-inset px-3 h-10 text-[14px] text-ink placeholder:text-ink-dim outline-none focus:border-amber transition-colors";
+
+export function LocationAutocomplete({ name }: { name: string }) {
+  const [value, setValue] = useState("");
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [open, setOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (value.trim().length < 2) {
+      setSuggestions([]);
+      return;
+    }
+
+    const timeout = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/cities?q=${encodeURIComponent(value)}`);
+        const { results } = await res.json();
+        setSuggestions(results);
+      } catch {
+        setSuggestions([]);
+      }
+    }, 250);
+
+    return () => clearTimeout(timeout);
+  }, [value]);
+
+  useEffect(() => {
+    function handleOutsideClick(e: MouseEvent) {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
+  }, []);
+
+  return (
+    <div ref={containerRef} className="relative">
+      <input
+        id={name}
+        name={name}
+        type="text"
+        required
+        autoComplete="off"
+        value={value}
+        onChange={(e) => {
+          setValue(e.target.value);
+          setOpen(true);
+        }}
+        onFocus={() => setOpen(true)}
+        placeholder="Manila, Philippines"
+        className={inputClass}
+      />
+      {open && suggestions.length > 0 && (
+        <ul className="absolute z-10 top-full left-0 right-0 mt-1 border border-line bg-bg-elevated max-h-56 overflow-y-auto">
+          {suggestions.map((suggestion) => (
+            <li key={suggestion}>
+              <button
+                type="button"
+                onClick={() => {
+                  setValue(suggestion);
+                  setSuggestions([]);
+                  setOpen(false);
+                }}
+                className="w-full text-left px-3 py-2 text-[14px] text-ink hover:bg-bg-inset transition-colors"
+              >
+                {suggestion}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
