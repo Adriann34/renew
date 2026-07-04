@@ -5,7 +5,13 @@ import { useEffect, useRef, useState } from "react";
 const inputClass =
   "w-full border border-line bg-bg-inset px-3 h-10 text-[14px] text-ink placeholder:text-ink-dim outline-none focus:border-amber transition-colors";
 
-export function LocationAutocomplete({ name }: { name: string }) {
+export function LocationAutocomplete({
+  name,
+  onValueChange,
+}: {
+  name: string;
+  onValueChange?: (value: string) => void;
+}) {
   const [value, setValue] = useState("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [open, setOpen] = useState(false);
@@ -52,6 +58,7 @@ export function LocationAutocomplete({ name }: { name: string }) {
         onChange={(e) => {
           setValue(e.target.value);
           setOpen(true);
+          onValueChange?.(e.target.value);
         }}
         onFocus={() => setOpen(true)}
         placeholder="Manila, Philippines"
@@ -67,6 +74,7 @@ export function LocationAutocomplete({ name }: { name: string }) {
                   setValue(suggestion);
                   setSuggestions([]);
                   setOpen(false);
+                  onValueChange?.(suggestion);
                 }}
                 className="w-full text-left px-3 py-2 text-[14px] text-ink hover:bg-bg-inset transition-colors"
               >

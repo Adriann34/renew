@@ -15,14 +15,14 @@ export default async function SellPage() {
     <main>
       <Navbar />
 
-      <div className="max-w-2xl mx-auto px-6 py-16">
+      <div className="max-w-6xl mx-auto px-6 py-16">
         <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-teal mb-3">
           For sellers
         </p>
         <h1 className="font-display font-semibold text-2xl mb-2">
           List your hardware
         </h1>
-        <p className="text-ink-dim text-[14px] mb-10">
+        <p className="text-ink-dim text-[14px] mb-10 max-w-xl">
           Fill in your diagnostic report and back it up with photos. Verified
           listings sell faster and for better prices.
         </p>

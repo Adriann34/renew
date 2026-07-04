@@ -8,11 +8,9 @@ benchmark score, tested power draw) filled in by the seller when they
 list, backed by photo proof, so buyers can trust a used part before it
 ships.
 
-Personal project / portfolio piece. Homepage, FAQ, About/contact, and
-sign in/sign up pages are built. Supabase Auth (email/password + Google)
-and the Prisma/Supabase Postgres connection are both wired up and live.
-Listings still come from mock data — payments, the real listing model,
-and a seller dashboard are next.
+Personal project / portfolio piece. Auth, real Prisma-backed listings,
+create-listing flow, and listing detail page are all live. Payments and a
+seller dashboard are next.
 
 ## Stack
 - Next.js 15 (App Router) + TypeScript
@@ -62,8 +60,13 @@ compatibility first — v3 plugins/configs don't always drop into v4 cleanly.
   real Supabase Auth; redirect home if already signed in
 - `app/auth/callback/route.ts` — OAuth callback that exchanges the
   Supabase auth code for a session
+- `app/sell/` — create-listing page + Server Action (auth-gated, uploads
+  photos to Supabase Storage, writes to Postgres via Prisma)
+- `app/listing/[id]/page.tsx` — real listing detail page
+- `app/api/cities/route.ts` — offline city autocomplete for the location field
 - `components/auth/` — `SignInForm`, `SignUpForm`, `GoogleSignInButton`,
   `SignOutButton`
+- `components/listing/` — `CreateListingForm`, `LocationAutocomplete`
 - `components/Hero.tsx`, `Navbar.tsx`, `CategoryStrip.tsx`,
   `ListingCard.tsx`, `ConditionBadge.tsx`, `DiagnosticTag.tsx`,
   `TrustBar.tsx`, `SellCta.tsx`, `Footer.tsx` — `Navbar` reads the
@@ -72,10 +75,13 @@ compatibility first — v3 plugins/configs don't always drop into v4 cleanly.
   client, and the session-refresh helper used by `middleware.ts`
 - `middleware.ts` — refreshes the Supabase session cookie on every request
 - `lib/prisma.ts` — Prisma client singleton (dev-safe against hot reload)
-- `lib/data.ts` — mock listings; homepage still reads from here, not
-  Prisma yet
-- `prisma/schema.prisma` — schema (User, Listing), connected to Supabase
-  Postgres; `prisma/migrations/` has the initial migration
+- `lib/listings.ts` — real Prisma queries for listings (homepage + detail page)
+- `lib/format.ts` — `formatPrice()` (USD)
+- `lib/image.ts` — compresses uploaded photos to ~200KB via sharp
+- `lib/data.ts` — just the static category nav counts now
+- `prisma/schema.prisma` — schema (User, Listing, ListingPhoto), connected
+  to Supabase Postgres; `prisma/migrations/` has all applied migrations
+- `prisma/seed.ts` — seeds placeholder sellers + listings
 - `.env.example` — copy to `.env.local` (and `.env`, for the Prisma CLI)
   and fill in your Supabase project values
 
@@ -106,14 +112,10 @@ first on reload.
 
 ## Next steps (in order)
 
-1. Replace `lib/data.ts` with real Prisma queries against the now-connected
-   Supabase Postgres database
-2. Individual listing page + create-listing flow (seller fills in the
-   diagnostic report and uploads photos backing it up — burn-in test,
-   benchmark screenshot, physical condition)
-3. Build the Express API for anything that shouldn't live in Next route
+1. Seller dashboard (edit/delete own listings)
+2. Build the Express API for anything that shouldn't live in Next route
    handlers (e.g. Stripe webhooks, background jobs)
-4. Stripe Checkout for fixed-price purchases
+3. Stripe Checkout for fixed-price purchases
 
 ## Keeping the project alive (planned, not implemented)
 
