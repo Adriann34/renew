@@ -1,16 +1,5 @@
 import type { Grade } from "@prisma/client";
-
-const gradeColor: Record<Grade, string> = {
-  A: "text-pass border-pass",
-  B: "text-amber border-amber",
-  C: "text-danger border-danger",
-};
-
-const gradeLabel: Record<Grade, string> = {
-  A: "Like New",
-  B: "Good",
-  C: "Fair",
-};
+import { gradeColor, gradeLabel } from "@/lib/grade";
 
 export function ConditionBadge({ grade }: { grade: Grade }) {
   return (

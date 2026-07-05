@@ -1,4 +1,5 @@
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { DiagnosticTag } from "@/components/DiagnosticTag";
@@ -41,12 +42,12 @@ export default async function ListingPage({
       <Navbar />
 
       <div className="max-w-6xl mx-auto px-6 pt-6">
-        <a
+        <Link
           href="/#listings"
           className="inline-flex items-center gap-2 text-[13px] text-ink-dim hover:text-ink transition-colors"
         >
           ← Back to listings
-        </a>
+        </Link>
       </div>
 
       <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col lg:flex-row gap-10 items-start lg:justify-center">

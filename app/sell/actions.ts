@@ -17,6 +17,19 @@ const PHOTO_FIELDS: { field: string; kind: PhotoKind }[] = [
   { field: "photos_boot", kind: "BOOT" },
 ];
 
+const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
+const MAX_PHOTOS_PER_LISTING = 20;
+const ALLOWED_PHOTO_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"]);
+
+const MAX_TITLE_LEN = 120;
+const MAX_SPEC_LEN = 120;
+const MAX_LOCATION_LEN = 120;
+const MAX_DESCRIPTION_LEN = 2000;
+const MAX_BENCHMARK_LABEL_LEN = 60;
+const MAX_PRICE = 1_000_000;
+const MAX_WATTAGE = 5000;
+const MAX_BENCHMARK_SCORE = 10_000_000;
+
 async function uploadPhoto(
   supabase: Awaited<ReturnType<typeof createClient>>,
   listingId: string,
@@ -83,6 +96,24 @@ export async function createListingAction(
   if ([price, benchmarkScore, wattageDraw].some((n) => Number.isNaN(n))) {
     return { error: "Price, benchmark score, and wattage draw must be numbers." };
   }
+  if (price < 0 || price > MAX_PRICE) {
+    return { error: `Price must be between 0 and ${MAX_PRICE.toLocaleString()}.` };
+  }
+  if (wattageDraw < 0 || wattageDraw > MAX_WATTAGE) {
+    return { error: `Wattage draw must be between 0 and ${MAX_WATTAGE}.` };
+  }
+  if (benchmarkScore < 0 || benchmarkScore > MAX_BENCHMARK_SCORE) {
+    return { error: "Benchmark score is out of range." };
+  }
+  if (
+    title.length > MAX_TITLE_LEN ||
+    spec.length > MAX_SPEC_LEN ||
+    location.length > MAX_LOCATION_LEN ||
+    description.length > MAX_DESCRIPTION_LEN ||
+    benchmarkLabel.length > MAX_BENCHMARK_LABEL_LEN
+  ) {
+    return { error: "One or more fields exceed their maximum length." };
+  }
 
   const conditionFiles = formData
     .getAll("photos_condition")
@@ -93,10 +124,21 @@ export async function createListingAction(
 
   const listingId = randomUUID();
   const uploadTasks: Promise<{ kind: PhotoKind; url: string; path: string }>[] = [];
+  let totalPhotoCount = 0;
 
   for (const { field, kind } of PHOTO_FIELDS) {
     const files = formData.getAll(field).filter((f): f is File => f instanceof File && f.size > 0);
     for (const file of files) {
+      totalPhotoCount += 1;
+      if (totalPhotoCount > MAX_PHOTOS_PER_LISTING) {
+        return { error: `You can attach at most ${MAX_PHOTOS_PER_LISTING} photos.` };
+      }
+      if (!ALLOWED_PHOTO_TYPES.has(file.type)) {
+        return { error: "Photos must be JPEG, PNG, WebP, or HEIC images." };
+      }
+      if (file.size > MAX_PHOTO_BYTES) {
+        return { error: `Each photo must be under ${MAX_PHOTO_BYTES / (1024 * 1024)}MB.` };
+      }
       uploadTasks.push(uploadPhoto(supabase, listingId, kind, file));
     }
   }

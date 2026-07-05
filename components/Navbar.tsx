@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { createClient } from "@/lib/supabase/server";
@@ -11,11 +12,11 @@ export async function Navbar() {
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-bg/90 backdrop-blur">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center gap-6">
-        <a href="/" className="flex items-center gap-2">
+        <Link href="/" className="flex items-center gap-2">
           <span className="font-display font-semibold text-lg tracking-tight">
             re<span className="text-amber">new</span>
           </span>
-        </a>
+        </Link>
 
         <div className="hidden md:flex items-center flex-1 max-w-md ml-14">
           <div className="w-full flex items-center border border-line bg-bg-inset px-3 h-9">
