@@ -5,7 +5,9 @@ import { Footer } from "@/components/Footer";
 import { DiagnosticTag } from "@/components/DiagnosticTag";
 import { ListingGallery, type GalleryGroup } from "@/components/listing/ListingGallery";
 import { ListingActions } from "@/components/listing/ListingActions";
+import { DeleteListingButton } from "@/components/listing/DeleteListingButton";
 import { getListingById } from "@/lib/listings";
+import { createClient } from "@/lib/supabase/server";
 import { formatPrice } from "@/lib/format";
 import type { PhotoKind } from "@prisma/client";
 
@@ -37,6 +39,12 @@ export default async function ListingPage({
   const sellerLabel = listing.seller.name ?? listing.seller.email;
   const initials = sellerLabel.slice(0, 2).toUpperCase();
 
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const isOwner = !!user && user.id === listing.sellerId;
+
   return (
     <main>
       <Navbar />
@@ -56,6 +64,13 @@ export default async function ListingPage({
         </div>
 
         <div className="w-full lg:w-105 shrink-0">
+          {isOwner && (
+            <div className="flex items-center justify-between gap-3 flex-wrap border border-line bg-bg-elevated px-3 py-2.5 mb-5 rounded-(--radius-tag)">
+              <span className="text-[12px] text-ink-dim">This is your listing.</span>
+              <DeleteListingButton listingId={listing.id} />
+            </div>
+          )}
+
           <p className="text-[11px] uppercase tracking-widest text-ink-dim mb-1">
             {listing.category} · {listing.spec}
           </p>

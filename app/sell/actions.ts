@@ -7,6 +7,7 @@ import { Category, type Grade, type PhotoKind } from "@prisma/client";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { compressImage } from "@/lib/image";
+import { categoryDiagnosticTier } from "@/lib/category";
 
 export type CreateListingState = { error: string | null };
 
@@ -79,12 +80,9 @@ export async function createListingAction(
   const location = str(formData, "location");
   const description = str(formData, "description");
   const gradeRaw = str(formData, "grade");
-  const benchmarkLabel = str(formData, "benchmarkLabel");
-  const benchmarkScore = num(formData, "benchmarkScore");
-  const wattageDraw = num(formData, "wattageDraw");
   const bootVerified = formData.get("bootVerified") === "on";
 
-  if (!title || !categoryRaw || !spec || !location || !description || !gradeRaw || !benchmarkLabel) {
+  if (!title || !categoryRaw || !spec || !location || !description || !gradeRaw) {
     return { error: "Please fill in all required fields." };
   }
   if (!Object.values(Category).includes(categoryRaw as Category)) {
@@ -93,16 +91,30 @@ export async function createListingAction(
   if (gradeRaw !== "A" && gradeRaw !== "B" && gradeRaw !== "C") {
     return { error: "Please choose a valid condition." };
   }
-  if ([price, benchmarkScore, wattageDraw].some((n) => Number.isNaN(n))) {
+
+  // Which diagnostic fields this category's form actually collects — kept in
+  // sync with CreateListingForm, which only renders the matching inputs.
+  const tier = categoryDiagnosticTier[categoryRaw as Category];
+  const hasBenchmark = tier === "full";
+  const hasWattage = tier === "full" || tier === "wattage-boot";
+
+  const benchmarkLabel = hasBenchmark ? str(formData, "benchmarkLabel") : "";
+  const benchmarkScore = hasBenchmark ? num(formData, "benchmarkScore") : 0;
+  const wattageDraw = hasWattage ? num(formData, "wattageDraw") : 0;
+
+  if (hasBenchmark && !benchmarkLabel) {
+    return { error: "Please fill in all required fields." };
+  }
+  if (Number.isNaN(price) || (hasBenchmark && Number.isNaN(benchmarkScore)) || (hasWattage && Number.isNaN(wattageDraw))) {
     return { error: "Price, benchmark score, and wattage draw must be numbers." };
   }
   if (price < 0 || price > MAX_PRICE) {
     return { error: `Price must be between 0 and ${MAX_PRICE.toLocaleString()}.` };
   }
-  if (wattageDraw < 0 || wattageDraw > MAX_WATTAGE) {
+  if (hasWattage && (wattageDraw < 0 || wattageDraw > MAX_WATTAGE)) {
     return { error: `Wattage draw must be between 0 and ${MAX_WATTAGE}.` };
   }
-  if (benchmarkScore < 0 || benchmarkScore > MAX_BENCHMARK_SCORE) {
+  if (hasBenchmark && (benchmarkScore < 0 || benchmarkScore > MAX_BENCHMARK_SCORE)) {
     return { error: "Benchmark score is out of range." };
   }
   if (

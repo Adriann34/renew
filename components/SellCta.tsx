@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 export function SellCta() {
   return (
     <section className="border-b border-line">
@@ -17,12 +19,12 @@ export function SellCta() {
             (burn-in test, benchmark screen, physical condition).
             Proof-backed listings sell faster and for better prices.
           </p>
-          <a
+          <Link
             href="/sell"
             className="inline-flex items-center bg-teal text-bg-inset text-[14px] font-medium px-6 h-11 rounded-(--radius-tag) hover:bg-teal/90 transition-colors"
           >
             Start your first listing
-          </a>
+          </Link>
         </div>
 
         <div className="border border-line bg-bg-elevated font-mono text-[13px]">

@@ -31,8 +31,8 @@ export async function Navbar() {
 
         <div className="hidden lg:flex flex-1 justify-center">
           <nav className="flex items-center gap-6 text-[13px] text-ink-dim">
-            <a href="#" className="hover:text-ink transition-colors">Browse</a>
-            <a href="/sell" className="hover:text-ink transition-colors">Sell hardware</a>
+            <Link href="/browse" className="hover:text-ink transition-colors">Browse</Link>
+            <Link href="/sell" className="hover:text-ink transition-colors">Sell hardware</Link>
           </nav>
         </div>
 
@@ -53,12 +53,12 @@ export async function Navbar() {
               </a>
             )}
           </div>
-          <a
+          <Link
             href="/sell"
             className="bg-amber text-bg-inset text-[13px] font-medium px-4 h-9 flex items-center rounded-(--radius-tag) hover:bg-amber/90 transition-colors"
           >
             List an item
-          </a>
+          </Link>
         </div>
       </div>
     </header>

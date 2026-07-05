@@ -11,3 +11,9 @@ export const gradeLabel: Record<Grade, string> = {
   B: "Good",
   C: "Fair",
 };
+
+export const gradeDot: Record<Grade, string> = {
+  A: "bg-pass",
+  B: "bg-amber",
+  C: "bg-danger",
+};

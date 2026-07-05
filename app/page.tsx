@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { Hero } from "@/components/Hero";
 import { CategoryStrip } from "@/components/CategoryStrip";
@@ -26,9 +27,9 @@ export default async function Home() {
               Recently verified listings
             </h2>
           </div>
-          <a href="#" className="text-[13px] text-ink-dim hover:text-ink">
+          <Link href="/browse" className="text-[13px] text-ink-dim hover:text-ink">
             View all →
-          </a>
+          </Link>
         </div>
 
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">

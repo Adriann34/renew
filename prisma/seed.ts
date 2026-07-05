@@ -25,6 +25,7 @@ const listings = [
     wattageDraw: 411,
     bootVerified: true,
     sellerId: "seed-user-kjetil-hw",
+    photo: "/demo/rtx-4090.jpg",
   },
   {
     id: "seed-listing-gpu-3080ti-02",
@@ -33,7 +34,7 @@ const listings = [
     price: 550,
     grade: "B" as const,
     spec: "12GB GDDR6X",
-    location: "Bergen, Norway",
+    location: "Austin, USA",
     description:
       "Solid daily driver, some light wear on the shroud. Selling as part of a full system teardown.",
     benchmarkScore: 18340,
@@ -41,6 +42,7 @@ const listings = [
     wattageDraw: 350,
     bootVerified: true,
     sellerId: "seed-user-silicon-surplus",
+    photo: "/demo/rtx-3080ti.jpg",
   },
   {
     id: "seed-listing-gpu-7900xtx-03",
@@ -49,7 +51,7 @@ const listings = [
     price: 750,
     grade: "A" as const,
     spec: "24GB GDDR6",
-    location: "Trondheim, Norway",
+    location: "Stockholm, Sweden",
     description:
       "Barely used, mostly ran productivity workloads rather than gaming. Comes with original packaging.",
     benchmarkScore: 29870,
@@ -57,6 +59,7 @@ const listings = [
     wattageDraw: 355,
     bootVerified: true,
     sellerId: "seed-user-nordic-teardown",
+    photo: "/demo/rx-7900xtx.jpg",
   },
   {
     id: "seed-listing-cpu-7800x3d-04",
@@ -73,6 +76,7 @@ const listings = [
     wattageDraw: 120,
     bootVerified: true,
     sellerId: "seed-user-kjetil-hw",
+    photo: "/demo/ryzen-7800x3d.jpg",
   },
   {
     id: "seed-listing-gpu-3070-05",
@@ -81,7 +85,7 @@ const listings = [
     price: 280,
     grade: "C" as const,
     spec: "8GB GDDR6",
-    location: "Stavanger, Norway",
+    location: "Berlin, Germany",
     description:
       "Heavily used mining card, still fully functional but priced accordingly. Tested stable under load.",
     benchmarkScore: 12960,
@@ -89,6 +93,7 @@ const listings = [
     wattageDraw: 240,
     bootVerified: true,
     sellerId: "seed-user-gamut-gear",
+    photo: "/demo/rtx-3070.jpg",
   },
   {
     id: "seed-listing-psu-1000w-06",
@@ -97,7 +102,7 @@ const listings = [
     price: 95,
     grade: "A" as const,
     spec: "1000W · 80+ Gold",
-    location: "Trondheim, Norway",
+    location: "Stockholm, Sweden",
     description:
       "Downsized to a smaller build and don't need this much wattage anymore. All cables included.",
     benchmarkScore: 100,
@@ -105,6 +110,7 @@ const listings = [
     wattageDraw: 0,
     bootVerified: true,
     sellerId: "seed-user-nordic-teardown",
+    photo: "/demo/corsair-rm1000x.jpg",
   },
 ];
 
@@ -117,11 +123,24 @@ async function main() {
     });
   }
 
-  for (const listing of listings) {
+  for (const { photo, ...listing } of listings) {
     await prisma.listing.upsert({
       where: { id: listing.id },
       update: listing,
       create: listing,
+    });
+
+    // One CONDITION proof photo per seed listing. Deterministic id so re-running
+    // the seed updates the same row instead of piling up duplicates.
+    await prisma.listingPhoto.upsert({
+      where: { id: `${listing.id}-photo-condition` },
+      update: { url: photo },
+      create: {
+        id: `${listing.id}-photo-condition`,
+        listingId: listing.id,
+        kind: "CONDITION",
+        url: photo,
+      },
     });
   }
 

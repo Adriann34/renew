@@ -1,34 +1,24 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import { Category, type Grade } from "@prisma/client";
+import type { Category } from "@prisma/client";
 import { createListingAction, type CreateListingState } from "@/app/sell/actions";
 import { LocationAutocomplete } from "@/components/listing/LocationAutocomplete";
 import {
   PhotoWorkspace,
-  PHOTO_CATEGORIES,
+  getPhotoCategoriesForTier,
   emptyPhotosState,
   type PhotosState,
 } from "@/components/listing/PhotoWorkspace";
 import { ListingPreviewCard, type PreviewFields } from "@/components/listing/ListingPreviewCard";
+import {
+  categoryDiagnosticTier,
+  categorySpecPlaceholder,
+  categoryTitlePlaceholder,
+} from "@/lib/category";
+import { gradeLabel as conditionLabels } from "@/lib/grade";
 
 const initialState: CreateListingState = { error: null };
-
-const categoryLabels: Record<Category, string> = {
-  GPU: "GPU",
-  CPU: "CPU",
-  MOTHERBOARD: "Motherboard",
-  RAM: "RAM",
-  STORAGE: "Storage",
-  PSU: "PSU",
-  OTHER: "Other",
-};
-
-const conditionLabels: Record<Grade, string> = {
-  A: "Like New",
-  B: "Good",
-  C: "Fair",
-};
 
 const inputClass =
   "w-full border border-line bg-bg-inset px-3 h-10 text-[14px] text-ink placeholder:text-ink-dim outline-none focus:border-amber transition-colors";
@@ -46,7 +36,7 @@ const initialFields: PreviewFields = {
   bootVerified: false,
 };
 
-export function CreateListingForm() {
+export function CreateListingForm({ category }: { category: Category }) {
   const [state, formAction, isPending] = useActionState(createListingAction, initialState);
   const [photos, setPhotos] = useState<PhotosState>(emptyPhotosState);
   const [fields, setFields] = useState<PreviewFields>(initialFields);
@@ -55,11 +45,18 @@ export function CreateListingForm() {
     setFields((f) => ({ ...f, ...patch }));
   }
 
-  const flatPhotos = PHOTO_CATEGORIES.flatMap((c) => photos[c.key]);
-  const filledCategories = PHOTO_CATEGORIES.filter((c) => photos[c.key].length > 0).length;
+  const tier = categoryDiagnosticTier[category];
+  const hasBenchmark = tier === "full";
+  const hasWattage = tier === "full" || tier === "wattage-boot";
+  const photoCategories = getPhotoCategoriesForTier(tier);
+
+  const flatPhotos = photoCategories.flatMap((c) => photos[c.key]);
+  const filledCategories = photoCategories.filter((c) => photos[c.key].length > 0).length;
 
   return (
     <form action={formAction}>
+      <input type="hidden" name="category" value={category} />
+
       {state.error && (
         <p className="text-[13px] text-danger border border-danger/40 bg-danger/5 px-4 py-3 mb-6">
           {state.error}
@@ -68,7 +65,11 @@ export function CreateListingForm() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
         <aside className="space-y-6 w-full">
-          <PhotoWorkspace photos={photos} onPhotosChange={(key, files) => setPhotos((p) => ({ ...p, [key]: files }))} />
+          <PhotoWorkspace
+            tier={tier}
+            photos={photos}
+            onPhotosChange={(key, files) => setPhotos((p) => ({ ...p, [key]: files }))}
+          />
 
           <div className="flex items-center gap-3">
             <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-teal">Live preview</p>
@@ -79,7 +80,7 @@ export function CreateListingForm() {
             fields={fields}
             photos={flatPhotos}
             filledCategories={filledCategories}
-            totalCategories={PHOTO_CATEGORIES.length}
+            totalCategories={photoCategories.length}
           />
         </aside>
 
@@ -96,43 +97,26 @@ export function CreateListingForm() {
                 name="title"
                 type="text"
                 required
-                placeholder="RTX 4090 Founders Edition"
+                placeholder={categoryTitlePlaceholder[category]}
                 className={inputClass}
                 onChange={(e) => patchFields({ title: e.target.value })}
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="category" className={labelClass}>
-                  Category
-                </label>
-                <select id="category" name="category" required defaultValue="" className={inputClass}>
-                  <option value="" disabled>
-                    Select category
-                  </option>
-                  {Object.values(Category).map((c) => (
-                    <option key={c} value={c}>
-                      {categoryLabels[c]}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label htmlFor="price" className={labelClass}>
-                  Price ($)
-                </label>
-                <input
-                  id="price"
-                  name="price"
-                  type="number"
-                  min={0}
-                  required
-                  placeholder="1450"
-                  className={inputClass}
-                  onChange={(e) => patchFields({ price: e.target.value })}
-                />
-              </div>
+            <div>
+              <label htmlFor="price" className={labelClass}>
+                Price ($)
+              </label>
+              <input
+                id="price"
+                name="price"
+                type="number"
+                min={0}
+                required
+                placeholder="1450"
+                className={inputClass}
+                onChange={(e) => patchFields({ price: e.target.value })}
+              />
             </div>
 
             <div>
@@ -144,7 +128,7 @@ export function CreateListingForm() {
                 name="spec"
                 type="text"
                 required
-                placeholder="24GB GDDR6X"
+                placeholder={categorySpecPlaceholder[category]}
                 className={inputClass}
                 onChange={(e) => patchFields({ spec: e.target.value })}
               />
@@ -201,53 +185,57 @@ export function CreateListingForm() {
           <section className="border border-line bg-bg-elevated p-6 space-y-5">
             <h2 className="font-display font-medium text-[15px]">Diagnostic report</h2>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="benchmarkLabel" className={labelClass}>
-                  Benchmark name
-                </label>
-                <input
-                  id="benchmarkLabel"
-                  name="benchmarkLabel"
-                  type="text"
-                  required
-                  placeholder="Time Spy"
-                  className={inputClass}
-                  onChange={(e) => patchFields({ benchmarkLabel: e.target.value })}
-                />
+            {hasBenchmark && (
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label htmlFor="benchmarkLabel" className={labelClass}>
+                    Benchmark name
+                  </label>
+                  <input
+                    id="benchmarkLabel"
+                    name="benchmarkLabel"
+                    type="text"
+                    required
+                    placeholder="Time Spy"
+                    className={inputClass}
+                    onChange={(e) => patchFields({ benchmarkLabel: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <label htmlFor="benchmarkScore" className={labelClass}>
+                    Benchmark score
+                  </label>
+                  <input
+                    id="benchmarkScore"
+                    name="benchmarkScore"
+                    type="number"
+                    min={0}
+                    required
+                    placeholder="18340"
+                    className={inputClass}
+                    onChange={(e) => patchFields({ benchmarkScore: e.target.value })}
+                  />
+                </div>
               </div>
+            )}
+
+            {hasWattage && (
               <div>
-                <label htmlFor="benchmarkScore" className={labelClass}>
-                  Benchmark score
+                <label htmlFor="wattageDraw" className={labelClass}>
+                  Draw under load (W)
                 </label>
                 <input
-                  id="benchmarkScore"
-                  name="benchmarkScore"
+                  id="wattageDraw"
+                  name="wattageDraw"
                   type="number"
                   min={0}
                   required
-                  placeholder="18340"
+                  placeholder="0 if not applicable"
                   className={inputClass}
-                  onChange={(e) => patchFields({ benchmarkScore: e.target.value })}
+                  onChange={(e) => patchFields({ wattageDraw: e.target.value })}
                 />
               </div>
-            </div>
-
-            <div>
-              <label htmlFor="wattageDraw" className={labelClass}>
-                Draw under load (W)
-              </label>
-              <input
-                id="wattageDraw"
-                name="wattageDraw"
-                type="number"
-                min={0}
-                required
-                placeholder="0 if not applicable"
-                className={inputClass}
-                onChange={(e) => patchFields({ wattageDraw: e.target.value })}
-              />
-            </div>
+            )}
 
             <div className="flex items-center justify-between gap-6 pt-1">
               <div>

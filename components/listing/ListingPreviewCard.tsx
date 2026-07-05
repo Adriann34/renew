@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { Grade } from "@prisma/client";
-import { GpuMark } from "@/components/icons/GpuMark";
 import { gradeColor, gradeLabel } from "@/lib/grade";
 
 export type PreviewFields = {
@@ -50,8 +49,21 @@ export function ListingPreviewCard({
         {urls.length > 0 ? (
           <img src={urls[clampedIndex]} alt="Listing photo" className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center p-8">
-            <GpuMark className="w-full h-full text-ink-dim" />
+          <div className="w-full h-full flex items-center justify-center">
+            <svg
+              width="44"
+              height="44"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              className="text-ink-dim/50"
+              aria-label="No photo added yet"
+            >
+              <rect x="3" y="3" width="18" height="18" rx="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <path d="m21 15-5-5L5 21" />
+            </svg>
           </div>
         )}
         {urls.length > 1 && (

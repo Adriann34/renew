@@ -1,4 +1,5 @@
-import { GpuMark } from "@/components/icons/GpuMark";
+import Link from "next/link";
+import Image from "next/image";
 import { DiagnosticTag } from "@/components/DiagnosticTag";
 import { formatPrice } from "@/lib/format";
 
@@ -30,22 +31,29 @@ export function Hero() {
             >
               Browse listings
             </a>
-            <a
+            <Link
               href="/sell"
               className="border border-line text-[14px] px-6 h-11 flex items-center rounded-(--radius-tag) hover:border-ink-dim transition-colors"
             >
               Sell your hardware
-            </a>
+            </Link>
           </div>
         </div>
 
-        <div className="border border-line bg-bg-elevated">
-          <div className="flex items-center justify-between px-4 h-10 border-b border-line font-mono text-[10px] uppercase tracking-widest text-ink-dim">
-            <span>Diagnostic report</span>
-            <span className="text-pass">● photo-backed</span>
-          </div>
-          <div className="p-8 flex items-center justify-center border-b border-line">
-            <GpuMark className="w-48 h-auto text-ink-dim" />
+        <div className="border border-line bg-bg-elevated rounded-lg overflow-hidden lg:mr-8 xl:mr-14">
+          <div className="relative aspect-video border-b border-line overflow-hidden bg-bg-inset">
+            <Image
+              src="/RTX_4090_home_page.png"
+              alt="RTX 4090 Founders Edition"
+              fill
+              sizes="(max-width: 1024px) 100vw, 640px"
+              className="object-cover"
+              priority
+            />
+            <span className="absolute top-3 right-3 inline-flex items-center gap-1.5 bg-bg-elevated/90 border border-pass/40 text-pass text-[10px] font-mono uppercase tracking-wide px-2 py-1 rounded-(--radius-tag)">
+              <span className="w-1.5 h-1.5 rounded-full bg-pass" />
+              Verified
+            </span>
           </div>
           <div className="p-5 space-y-4">
             <div className="flex items-start justify-between">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { DiagnosticTier } from "@/lib/category";
 
 export type PhotoCategoryKey = "condition" | "burn_in" | "benchmark" | "boot";
 
@@ -13,12 +14,13 @@ export const emptyPhotosState: PhotosState = {
   boot: [],
 };
 
-export const PHOTO_CATEGORIES: {
+const ALL_PHOTO_CATEGORIES: {
   key: PhotoCategoryKey;
   field: string;
   label: string;
   required: boolean;
   hint: string;
+  tiers: DiagnosticTier[];
 }[] = [
   {
     key: "condition",
@@ -26,6 +28,7 @@ export const PHOTO_CATEGORIES: {
     label: "Condition photos",
     required: true,
     hint: "Close-up photos showing physical condition and any wear.",
+    tiers: ["full", "wattage-boot", "boot-only"],
   },
   {
     key: "burn_in",
@@ -33,6 +36,7 @@ export const PHOTO_CATEGORIES: {
     label: "Burn-in proof",
     required: false,
     hint: "A photo or screenshot from a sustained load test.",
+    tiers: ["full", "wattage-boot"],
   },
   {
     key: "benchmark",
@@ -40,6 +44,7 @@ export const PHOTO_CATEGORIES: {
     label: "Benchmark shot",
     required: false,
     hint: "Screenshot of the benchmark score above.",
+    tiers: ["full"],
   },
   {
     key: "boot",
@@ -47,8 +52,13 @@ export const PHOTO_CATEGORIES: {
     label: "Boot / POST",
     required: false,
     hint: "Proof the part boots and is recognized correctly.",
+    tiers: ["full", "wattage-boot", "boot-only"],
   },
 ];
+
+export function getPhotoCategoriesForTier(tier: DiagnosticTier) {
+  return ALL_PHOTO_CATEGORIES.filter((c) => c.tiers.includes(tier));
+}
 
 function useObjectUrls(files: File[]): string[] {
   const urls = useMemo(() => files.map((f) => URL.createObjectURL(f)), [files]);
@@ -73,12 +83,15 @@ function HiddenFileInput({ field, files }: { field: string; files: File[] }) {
 }
 
 export function PhotoWorkspace({
+  tier,
   photos,
   onPhotosChange,
 }: {
+  tier: DiagnosticTier;
   photos: PhotosState;
   onPhotosChange: (key: PhotoCategoryKey, files: File[]) => void;
 }) {
+  const categories = getPhotoCategoriesForTier(tier);
   const [activeTab, setActiveTab] = useState<PhotoCategoryKey>("condition");
   const [activeIndex, setActiveIndex] = useState<Record<PhotoCategoryKey, number>>({
     condition: 0,
@@ -89,7 +102,7 @@ export function PhotoWorkspace({
   const [dragging, setDragging] = useState(false);
   const pickerRef = useRef<HTMLInputElement>(null);
 
-  const meta = PHOTO_CATEGORIES.find((c) => c.key === activeTab)!;
+  const meta = categories.find((c) => c.key === activeTab) ?? categories[0];
   const activePhotos = photos[activeTab];
   const idx = Math.min(activeIndex[activeTab], Math.max(0, activePhotos.length - 1));
   const urls = useObjectUrls(activePhotos);
@@ -115,7 +128,7 @@ export function PhotoWorkspace({
   return (
     <div className="border border-line bg-bg-elevated p-5">
       <div className="flex flex-wrap gap-2 mb-4">
-        {PHOTO_CATEGORIES.map((c) => {
+        {categories.map((c) => {
           const count = photos[c.key].length;
           const active = c.key === activeTab;
           return (
@@ -274,7 +287,7 @@ export function PhotoWorkspace({
         }}
       />
 
-      {PHOTO_CATEGORIES.map((c) => (
+      {categories.map((c) => (
         <HiddenFileInput key={c.key} field={c.field} files={photos[c.key]} />
       ))}
     </div>
