@@ -35,12 +35,24 @@ enum PhotoKind {
   BOOT
 }
 
+enum ListingStatus {
+  ACTIVE
+  SOLD
+}
+
 model User {
-  id        String    @id // matches Supabase auth.users.id — set explicitly, not generated here
-  email     String    @unique
-  name      String?
-  createdAt DateTime  @default(now())
-  listings  Listing[]
+  id                  String         @id // matches Supabase auth.users.id — set explicitly, not generated here
+  email               String         @unique
+  name                String?
+  phone               String?
+  location            String?
+  avatarUrl           String?
+  createdAt           DateTime       @default(now())
+  listings            Listing[]
+  saved               SavedListing[]
+  buyerConversations  Conversation[] @relation("BuyerConversations")
+  sellerConversations Conversation[] @relation("SellerConversations")
+  messages            Message[]
 }
 
 model Listing {
@@ -56,10 +68,24 @@ model Listing {
   benchmarkLabel  String
   wattageDraw     Int
   bootVerified    Boolean        @default(false)
+  status          ListingStatus  @default(ACTIVE)
   sellerId        String
   seller          User           @relation(fields: [sellerId], references: [id])
   photos          ListingPhoto[]
+  savedBy         SavedListing[]
+  conversations   Conversation[]
   createdAt       DateTime       @default(now())
+}
+
+model SavedListing {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  listingId String
+  listing   Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, listingId])
 }
 
 model ListingPhoto {
@@ -69,4 +95,36 @@ model ListingPhoto {
   kind      PhotoKind
   url       String
   createdAt DateTime  @default(now())
+}
+
+model Conversation {
+  id               String    @id @default(uuid())
+  listingId        String
+  listing          Listing   @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  buyerId          String
+  buyer            User      @relation("BuyerConversations", fields: [buyerId], references: [id], onDelete: Cascade)
+  sellerId         String
+  seller           User      @relation("SellerConversations", fields: [sellerId], references: [id], onDelete: Cascade)
+  messages         Message[]
+  buyerLastReadAt  DateTime? // per-user read markers — cheaper than per-message readAt
+  sellerLastReadAt DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt // bumped on each new message → inbox sort key
+
+  @@unique([listingId, buyerId]) // one thread per buyer per listing
+  @@index([buyerId])
+  @@index([sellerId])
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderId       String
+  sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  body           String       @default("") // may be empty when attachment-only
+  attachmentUrl  String? // public URL of compressed image, if any
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
 }

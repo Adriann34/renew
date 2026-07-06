@@ -6,7 +6,9 @@ import { DiagnosticTag } from "@/components/DiagnosticTag";
 import { ListingGallery, type GalleryGroup } from "@/components/listing/ListingGallery";
 import { ListingActions } from "@/components/listing/ListingActions";
 import { DeleteListingButton } from "@/components/listing/DeleteListingButton";
+import { MessageSellerButton } from "@/components/listing/MessageSellerButton";
 import { getListingById } from "@/lib/listings";
+import { isListingSaved } from "@/lib/saved";
 import { createClient } from "@/lib/supabase/server";
 import { formatPrice } from "@/lib/format";
 import type { PhotoKind } from "@prisma/client";
@@ -44,12 +46,13 @@ export default async function ListingPage({
     data: { user },
   } = await supabase.auth.getUser();
   const isOwner = !!user && user.id === listing.sellerId;
+  const initialSaved = user ? await isListingSaved(user.id, listing.id) : false;
 
   return (
     <main>
       <Navbar />
 
-      <div className="max-w-6xl mx-auto px-6 pt-6">
+      <div className="max-w-5xl mx-auto px-6 pt-6">
         <Link
           href="/#listings"
           className="inline-flex items-center gap-2 text-[13px] text-ink-dim hover:text-ink transition-colors"
@@ -58,16 +61,32 @@ export default async function ListingPage({
         </Link>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 py-8 flex flex-col lg:flex-row gap-10 items-start lg:justify-center">
+      <div className="max-w-5xl mx-auto px-6 py-8 flex flex-col lg:flex-row gap-10 items-start">
         <div className="w-full lg:w-125 lg:sticky lg:top-22 shrink-0">
           <ListingGallery groups={groups} title={listing.title} />
         </div>
 
-        <div className="w-full lg:w-105 shrink-0">
+        <div className="w-full lg:flex-1 lg:min-w-0">
           {isOwner && (
             <div className="flex items-center justify-between gap-3 flex-wrap border border-line bg-bg-elevated px-3 py-2.5 mb-5 rounded-(--radius-tag)">
               <span className="text-[12px] text-ink-dim">This is your listing.</span>
-              <DeleteListingButton listingId={listing.id} />
+              <div className="flex items-center gap-2">
+                <Link
+                  href={`/listing/${listing.id}/edit`}
+                  className="border border-line text-[13px] font-medium px-3 h-8 flex items-center rounded-(--radius-tag) hover:border-ink-dim transition-colors"
+                >
+                  Edit
+                </Link>
+                <DeleteListingButton listingId={listing.id} />
+              </div>
+            </div>
+          )}
+
+          {!isOwner && listing.status === "SOLD" && (
+            <div className="border border-line bg-bg-elevated px-3 py-2.5 mb-5 rounded-(--radius-tag)">
+              <span className="text-[12px] text-ink-dim">
+                This listing has been marked as sold and is no longer available.
+              </span>
             </div>
           )}
 
@@ -79,7 +98,7 @@ export default async function ListingPage({
             <h1 className="font-display font-semibold text-2xl leading-tight">
               {listing.title}
             </h1>
-            <ListingActions />
+            <ListingActions listingId={listing.id} initialSaved={initialSaved} />
           </div>
 
           <div className="flex items-center gap-3 mt-3 mb-6">
@@ -122,19 +141,18 @@ export default async function ListingPage({
           </div>
 
           <div className="flex items-center gap-3 py-4 border-t border-b border-line mb-6">
-            <div className="w-10 h-10 shrink-0 flex items-center justify-center rounded-(--radius-tag) bg-amber text-bg-inset font-mono font-semibold text-sm">
-              {initials}
+            <div className="w-10 h-10 shrink-0 overflow-hidden flex items-center justify-center rounded-(--radius-tag) bg-amber text-bg-inset font-mono font-semibold text-sm">
+              {listing.seller.avatarUrl ? (
+                <img src={listing.seller.avatarUrl} alt={sellerLabel} className="w-full h-full object-cover" />
+              ) : (
+                initials
+              )}
             </div>
             <div className="min-w-0 flex-1">
               <p className="text-[14px] font-medium truncate">{sellerLabel}</p>
               <p className="text-[12px] text-ink-dim truncate">{listing.location}</p>
             </div>
-            <a
-              href={`mailto:${listing.seller.email}`}
-              className="shrink-0 border border-line text-[13px] font-medium px-4 h-9 flex items-center rounded-(--radius-tag) hover:border-ink-dim transition-colors"
-            >
-              Message seller
-            </a>
+            {!isOwner && <MessageSellerButton listingId={listing.id} />}
           </div>
 
           {listing.description && (
