@@ -27,13 +27,16 @@ export function BrowseView({
   categoryCounts,
   totalCount,
   initialCategory,
+  initialSearch,
 }: {
   listings: ListingWithRelations[];
   categoryOrder: Category[];
   categoryCounts: Partial<Record<Category, number>>;
   totalCount: number;
   initialCategory: CategoryTab;
+  initialSearch: string;
 }) {
+  const [search, setSearch] = useState(initialSearch);
   const [category, setCategory] = useState<CategoryTab>(initialCategory);
   const [grades, setGrades] = useState<Grade[]>([]);
   const [countries, setCountries] = useState<string[]>([]);
@@ -90,7 +93,14 @@ export function BrowseView({
   }, [categoryScoped]);
 
   const filtered = useMemo(() => {
+    // Match each whitespace-separated term against title + spec so a query like
+    // "4090 founders" narrows rather than requiring the exact phrase.
+    const terms = search.toLowerCase().split(/\s+/).filter(Boolean);
     return listings.filter((l) => {
+      if (terms.length) {
+        const haystack = `${l.title} ${l.spec}`.toLowerCase();
+        if (!terms.every((t) => haystack.includes(t))) return false;
+      }
       if (category !== "all" && l.category !== category) return false;
       if (grades.length && !grades.includes(l.grade)) return false;
       if (countries.length) {
@@ -103,7 +113,7 @@ export function BrowseView({
       if (verifiedOnly && !l.bootVerified) return false;
       return true;
     });
-  }, [listings, category, grades, countries, priceMin, priceMax, maxWatt, verifiedOnly]);
+  }, [listings, search, category, grades, countries, priceMin, priceMax, maxWatt, verifiedOnly]);
 
   const sorted = useMemo(() => {
     const arr = [...filtered];
@@ -116,7 +126,14 @@ export function BrowseView({
 
   useEffect(() => {
     setPage(1);
-  }, [category, grades, countries, priceMin, priceMax, maxWatt, verifiedOnly, sort]);
+  }, [search, category, grades, countries, priceMin, priceMax, maxWatt, verifiedOnly, sort]);
+
+  // A navbar search while already on /browse re-renders this component with a
+  // new `q` param but doesn't remount it, so mirror the incoming value into
+  // local state — otherwise the second search wouldn't take effect.
+  useEffect(() => {
+    setSearch(initialSearch);
+  }, [initialSearch]);
 
   const totalPages = Math.max(1, Math.ceil(sorted.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
@@ -158,10 +175,31 @@ export function BrowseView({
           {categoryTotal} {categoryLabel} · every one with a diagnostic report
         </p>
         <h1 className="font-display font-semibold text-3xl md:text-4xl mb-2">Browse listings</h1>
-        <p className="text-ink-dim text-[15px] max-w-xl mb-8">
+        <p className="text-ink-dim text-[15px] max-w-xl mb-6">
           Filter by category, grade, and the numbers sellers actually tested — draw under load,
           benchmark score, boot status — before you talk to anyone.
         </p>
+        <div className="flex items-center border border-line bg-bg-inset px-3 h-11 max-w-xl mb-8 focus-within:border-ink-dim transition-colors">
+          <span className="text-ink-dim text-sm font-mono">⌕</span>
+          <input
+            type="search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Search by name or spec — RTX 4080, Ryzen 9, DDR5..."
+            aria-label="Search listings"
+            className="flex-1 bg-transparent px-2.5 text-[14px] text-ink placeholder:text-ink-dim outline-none [&::-webkit-search-cancel-button]:appearance-none"
+          />
+          {search && (
+            <button
+              type="button"
+              onClick={() => setSearch("")}
+              aria-label="Clear search"
+              className="text-ink-dim hover:text-ink text-lg leading-none px-1"
+            >
+              ×
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="border-b border-line overflow-x-auto">

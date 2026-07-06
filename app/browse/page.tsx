@@ -14,9 +14,9 @@ function countBy<T extends string>(values: T[]): Partial<Record<T, number>> {
 export default async function BrowsePage({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string }>;
+  searchParams: Promise<{ category?: string; q?: string }>;
 }) {
-  const { category } = await searchParams;
+  const { category, q } = await searchParams;
   const listings = await getListings();
 
   // Category tab counts are always totals across the whole dataset — the
@@ -39,6 +39,7 @@ export default async function BrowsePage({
         categoryCounts={categoryCounts}
         totalCount={listings.length}
         initialCategory={initialCategory}
+        initialSearch={q ?? ""}
       />
       <Footer />
     </main>

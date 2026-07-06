@@ -25,12 +25,12 @@ export function Hero() {
             exactly what you&apos;re buying before it arrives.
           </p>
           <div className="flex flex-wrap gap-3">
-            <a
-              href="#listings"
+            <Link
+              href="/browse"
               className="bg-amber text-bg-inset text-[14px] font-medium px-6 h-11 flex items-center rounded-(--radius-tag) hover:bg-amber/90 transition-colors"
             >
               Browse listings
-            </a>
+            </Link>
             <Link
               href="/sell"
               className="border border-line text-[14px] px-6 h-11 flex items-center rounded-(--radius-tag) hover:border-ink-dim transition-colors"

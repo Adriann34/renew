@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { SearchBar } from "@/components/SearchBar";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { createClient } from "@/lib/supabase/server";
 
@@ -19,14 +20,7 @@ export async function Navbar() {
         </Link>
 
         <div className="hidden md:flex items-center flex-1 max-w-md">
-          <div className="w-full flex items-center border border-line bg-bg-inset px-3 h-9">
-            <span className="text-ink-dim text-xs font-mono">⌕</span>
-            <input
-              type="text"
-              placeholder="Search RTX 4080, Ryzen 9, DDR5..."
-              className="flex-1 bg-transparent px-2 text-[13px] text-ink placeholder:text-ink-dim outline-none"
-            />
-          </div>
+          <SearchBar />
         </div>
 
         <nav className="hidden lg:flex items-center gap-6 text-[13px] text-ink-dim">
