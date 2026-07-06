@@ -1,6 +1,9 @@
 import sharp from "sharp";
 
 const MAX_DIMENSION = 1920;
+// Default target, used for listing photos. Callers pass a smaller targetBytes
+// for smaller-context images — chat attachments and avatars use ~150KB
+// (see lib/chatUpload.ts and app/account/actions.ts).
 const TARGET_BYTES = 200 * 1024;
 const MIN_QUALITY = 20;
 

@@ -97,6 +97,10 @@ model ListingPhoto {
   createdAt DateTime  @default(now())
 }
 
+// RLS is enabled on Conversation + Message only (see the chat migration for
+// the policies) so Realtime subscriptions can only stream rows the signed-in
+// user is actually part of. Every other table has no RLS and relies entirely
+// on server-side auth checks in Server Actions instead.
 model Conversation {
   id               String    @id @default(uuid())
   listingId        String
