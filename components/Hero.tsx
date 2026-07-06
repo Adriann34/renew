@@ -9,7 +9,7 @@ export function Hero() {
       <div className="max-w-7xl mx-auto px-6 py-20 grid lg:grid-cols-2 gap-16 items-center">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-amber mb-5">
-            482 listings · every one with a diagnostic report
+            Verified listings · every one with a diagnostic report
           </p>
           <h1 className="font-display font-semibold text-[44px] md:text-[54px] leading-[1.05] mb-6">
             Used hardware,

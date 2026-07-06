@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { GoogleSignInButton } from "./GoogleSignInButton";
@@ -53,9 +54,12 @@ export function SignInForm() {
           <label htmlFor="password" className="block text-[12px] text-ink-dim">
             Password
           </label>
-          <a href="#" className="text-[12px] text-ink-dim hover:text-ink transition-colors">
-            Forgot?
-          </a>
+          <Link
+            href="/forgot-password"
+            className="text-[12px] text-ink-dim hover:text-ink transition-colors"
+          >
+            Forgot password?
+          </Link>
         </div>
         <input
           id="password"

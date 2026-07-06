@@ -23,7 +23,7 @@ export function ThemeToggle() {
     <button
       onClick={toggle}
       aria-label="Toggle dark mode"
-      className="w-9 h-9 flex items-center justify-center text-ink-dim hover:text-ink transition-colors"
+      className="p-1.5 flex items-center justify-center text-ink-dim hover:text-ink transition-colors"
     >
       <span className="text-[13px] font-mono">{isDark ? "☀" : "☾"}</span>
     </button>

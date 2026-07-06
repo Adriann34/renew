@@ -1,5 +1,23 @@
 import Link from "next/link";
 
+const STEPS = [
+  {
+    n: 1,
+    title: "Pick a category",
+    desc: "The diagnostic report is tailored to the part — you're never asked for numbers that don't apply.",
+  },
+  {
+    n: 2,
+    title: "Fill the diagnostic report",
+    desc: "Grade, benchmark score, and tested wattage — whichever fields apply to what you're selling.",
+  },
+  {
+    n: 3,
+    title: "Attach proof photos",
+    desc: "Physical condition, burn-in test, benchmark screen, and boot check to back the numbers up.",
+  },
+];
+
 export function SellCta() {
   return (
     <section className="border-b border-line">
@@ -27,17 +45,35 @@ export function SellCta() {
           </Link>
         </div>
 
-        <div className="border border-line bg-bg-elevated font-mono text-[13px]">
-          <div className="px-4 h-10 flex items-center border-b border-line text-ink-dim text-[10px] uppercase tracking-widest">
-            diagnostic-report.json
+        <div className="border border-line bg-bg-elevated">
+          <div className="px-4 h-10 flex items-center border-b border-line text-ink-dim text-[10px] font-mono uppercase tracking-widest">
+            How listing works
           </div>
-          <div className="p-5 space-y-2 text-ink-dim">
-            <p><span className="text-pass">✓</span> Grade: B — Good condition</p>
-            <p><span className="text-pass">✓</span> Time Spy score: 18,340</p>
-            <p><span className="text-pass">✓</span> Draw under load: 350W</p>
-            <p><span className="text-pass">✓</span> Boot verified: PASS</p>
-            <p><span className="text-amber">→</span> Attach photos to back this up</p>
-            <p><span className="text-ink">$</span> report saved to listing draft</p>
+          <div className="p-6">
+            {STEPS.map((step, i) => {
+              const last = i === STEPS.length - 1;
+              return (
+                <div key={step.n} className="flex gap-4">
+                  <div className="flex flex-col items-center">
+                    <span className="w-7 h-7 rounded-full border border-teal/40 text-teal font-mono text-[12px] flex items-center justify-center shrink-0">
+                      {step.n}
+                    </span>
+                    {!last && <span className="w-px flex-1 bg-line my-1" />}
+                  </div>
+                  <div className={last ? "" : "pb-6"}>
+                    <h3 className="font-display font-medium text-[15px] mb-1">
+                      {step.title}
+                    </h3>
+                    <p className="text-ink-dim text-[13px] leading-relaxed">
+                      {step.desc}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+          <div className="px-6 py-3 border-t border-line flex items-center gap-2 font-mono text-[12px] text-teal">
+            <span>→</span> Listing goes live with proof attached
           </div>
         </div>
       </div>

@@ -17,7 +17,7 @@ export default async function Home() {
       <Hero />
       <CategoryStrip />
 
-      <section id="listings" className="max-w-7xl mx-auto px-6 py-16">
+      <section id="listings" className="max-w-7xl mx-auto px-6 pt-10 pb-16">
         <div className="flex items-end justify-between mb-8">
           <div>
             <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-amber mb-2">
