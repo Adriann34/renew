@@ -3,6 +3,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { PhotoKind } from "@prisma/client";
 import type { DiagnosticTier } from "@/lib/category";
+import {
+  MAX_PHOTO_BYTES,
+  MAX_PHOTOS_PER_LISTING,
+  MAX_TOTAL_UPLOAD_BYTES,
+  formatMb,
+  isAllowedPhoto,
+} from "@/lib/photoLimits";
+
+const SUPPORTED_LABEL = "JPEG, PNG, WebP, or HEIC";
 
 export type PhotoCategoryKey = "condition" | "burn_in" | "benchmark" | "boot";
 
@@ -140,6 +149,7 @@ export function PhotoWorkspace({
     boot: 0,
   });
   const [dragging, setDragging] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const pickerRef = useRef<HTMLInputElement>(null);
 
   const meta = categories.find((c) => c.key === activeTab) ?? categories[0];
@@ -147,12 +157,68 @@ export function PhotoWorkspace({
   const idx = Math.min(activeIndex[activeTab], Math.max(0, activePhotos.length - 1));
   const urls = usePhotoUrls(activePhotos);
 
+  // Totals across every photo category, so the count and total-upload-size
+  // limits are enforced listing-wide, not per-tab. Only "new" files count
+  // toward upload bytes — "existing" photos (edit form) are already hosted and
+  // aren't re-uploaded.
+  const totals = useMemo(() => {
+    let count = 0;
+    let newBytes = 0;
+    for (const items of Object.values(photos)) {
+      for (const item of items) {
+        count += 1;
+        if (item.type === "new") newBytes += item.file.size;
+      }
+    }
+    return { count, newBytes };
+  }, [photos]);
+
+  // Validates each incoming file against type, per-photo size, the listing-wide
+  // photo count, and the total upload budget — rejecting anything invalid with
+  // a clear message *before* it's added to the form. This is what makes an
+  // over-limit request impossible to build, so the upload can never error out.
   function addFiles(fileList: FileList | File[]) {
-    const files = Array.from(fileList).filter((f) => f.type.startsWith("image/"));
-    if (!files.length) return;
-    const next: PhotoItem[] = [...photos[activeTab], ...files.map((file) => ({ type: "new" as const, file }))];
-    onPhotosChange(activeTab, next);
-    setActiveIndex((s) => ({ ...s, [activeTab]: next.length - 1 }));
+    const incoming = Array.from(fileList);
+    if (!incoming.length) return;
+
+    const accepted: File[] = [];
+    const errors: string[] = [];
+    let runningCount = totals.count;
+    let runningBytes = totals.newBytes;
+
+    for (const file of incoming) {
+      if (!isAllowedPhoto(file)) {
+        errors.push(`"${file.name}" isn't a supported image — use ${SUPPORTED_LABEL}.`);
+        continue;
+      }
+      if (file.size > MAX_PHOTO_BYTES) {
+        errors.push(`"${file.name}" is ${formatMb(file.size)} — the limit is ${formatMb(MAX_PHOTO_BYTES)} per photo.`);
+        continue;
+      }
+      if (runningCount + 1 > MAX_PHOTOS_PER_LISTING) {
+        errors.push(`You can attach at most ${MAX_PHOTOS_PER_LISTING} photos per listing.`);
+        break;
+      }
+      if (runningBytes + file.size > MAX_TOTAL_UPLOAD_BYTES) {
+        errors.push(
+          `Adding "${file.name}" would exceed the ${formatMb(MAX_TOTAL_UPLOAD_BYTES)} total upload limit — remove a photo or use a smaller file.`
+        );
+        continue;
+      }
+      accepted.push(file);
+      runningCount += 1;
+      runningBytes += file.size;
+    }
+
+    if (accepted.length) {
+      const next: PhotoItem[] = [
+        ...photos[activeTab],
+        ...accepted.map((file) => ({ type: "new" as const, file })),
+      ];
+      onPhotosChange(activeTab, next);
+      setActiveIndex((s) => ({ ...s, [activeTab]: next.length - 1 }));
+    }
+    setError(errors[0] ?? null);
   }
 
   function removeAt(i: number) {
@@ -161,6 +227,7 @@ export function PhotoWorkspace({
     const next = photos[activeTab].filter((_, j) => j !== i);
     onPhotosChange(activeTab, next);
     setActiveIndex((s) => ({ ...s, [activeTab]: Math.max(0, Math.min(s[activeTab], next.length - 1)) }));
+    setError(null); // removing frees up budget — clear any stale limit warning
   }
 
   function goTo(i: number) {
@@ -177,7 +244,10 @@ export function PhotoWorkspace({
             <button
               key={c.key}
               type="button"
-              onClick={() => setActiveTab(c.key)}
+              onClick={() => {
+                setActiveTab(c.key);
+                setError(null);
+              }}
               className={`flex items-center gap-1.5 font-mono text-[11px] uppercase tracking-wide px-3 py-1.5 border transition-colors ${
                 active
                   ? "bg-amber text-bg-inset border-amber"
@@ -315,7 +385,16 @@ export function PhotoWorkspace({
         </div>
       )}
 
-      <p className="text-[11px] text-ink-dim mt-3">{meta.hint}</p>
+      {error && (
+        <p className="text-[12px] text-danger mt-3 flex items-start gap-1.5" role="alert">
+          <span aria-hidden="true">⚠</span>
+          <span>{error}</span>
+        </p>
+      )}
+
+      <p className="text-[11px] text-ink-dim mt-3">
+        {meta.hint} · {SUPPORTED_LABEL} · up to {formatMb(MAX_PHOTO_BYTES)} each
+      </p>
 
       <input
         ref={pickerRef}

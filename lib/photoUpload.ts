@@ -3,15 +3,14 @@ import type { PhotoKind } from "@prisma/client";
 import { createClient } from "@/lib/supabase/server";
 import { compressImage } from "@/lib/image";
 
-export const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
-export const MAX_PHOTOS_PER_LISTING = 20;
-export const ALLOWED_PHOTO_TYPES = new Set([
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/heic",
-  "image/heif",
-]);
+// Limits live in a client-safe module (lib/photoLimits.ts) so the upload UI and
+// these Server Action checks share one source of truth. Re-exported here for
+// existing server-side importers.
+export {
+  MAX_PHOTO_BYTES,
+  MAX_PHOTOS_PER_LISTING,
+  ALLOWED_PHOTO_TYPES,
+} from "@/lib/photoLimits";
 
 export async function uploadPhoto(
   supabase: Awaited<ReturnType<typeof createClient>>,
