@@ -1,10 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { toggleSaveAction } from "@/app/listing/actions";
 
-export function ListingActions() {
-  const [liked, setLiked] = useState(false);
+export function ListingActions({
+  listingId,
+  initialSaved,
+}: {
+  listingId: string;
+  initialSaved: boolean;
+}) {
+  const router = useRouter();
+  const [liked, setLiked] = useState(initialSaved);
+  const [pending, startTransition] = useTransition();
   const [showToast, setShowToast] = useState(false);
+
+  function toggleSave() {
+    startTransition(async () => {
+      const result = await toggleSaveAction(listingId);
+      if ("error" in result) {
+        router.push(`/signin?next=/listing/${listingId}`);
+        return;
+      }
+      setLiked(result.saved);
+    });
+  }
 
   function share() {
     navigator.clipboard.writeText(window.location.href).catch(() => {});
@@ -16,10 +37,11 @@ export function ListingActions() {
     <div className="flex gap-2 shrink-0 pt-1">
       <button
         type="button"
-        onClick={() => setLiked((v) => !v)}
+        onClick={toggleSave}
+        disabled={pending}
         aria-pressed={liked}
         aria-label="Save listing"
-        className={`w-9 h-9 flex items-center justify-center rounded-(--radius-tag) border transition-colors ${
+        className={`w-9 h-9 flex items-center justify-center rounded-(--radius-tag) border transition-colors disabled:opacity-60 ${
           liked
             ? "border-danger text-danger bg-danger/10"
             : "border-line text-ink-dim hover:border-ink-dim hover:text-ink"

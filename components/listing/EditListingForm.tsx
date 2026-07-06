@@ -1,55 +1,52 @@
 "use client";
 
 import { useActionState, useState } from "react";
-import type { Category } from "@prisma/client";
-import { createListingAction, type CreateListingState } from "@/app/sell/actions";
+import { updateListingAction, type UpdateListingState } from "@/app/listing/actions";
 import { LocationAutocomplete } from "@/components/listing/LocationAutocomplete";
 import {
   PhotoWorkspace,
   getPhotoCategoriesForTier,
-  emptyPhotosState,
+  photosStateFromExisting,
   usePhotoUrls,
   type PhotosState,
 } from "@/components/listing/PhotoWorkspace";
 import { ListingPreviewCard, type PreviewFields } from "@/components/listing/ListingPreviewCard";
 import {
   categoryDiagnosticTier,
+  categoryLabels,
   categorySpecPlaceholder,
   categoryTitlePlaceholder,
 } from "@/lib/category";
 import { gradeLabel as conditionLabels } from "@/lib/grade";
+import type { ListingWithRelations } from "@/lib/listings";
 
-const initialState: CreateListingState = { error: null };
+const initialState: UpdateListingState = { error: null };
 
 const inputClass =
   "w-full border border-line bg-bg-inset px-3 h-10 text-[14px] text-ink placeholder:text-ink-dim outline-none focus:border-amber transition-colors";
 const labelClass = "block text-[12px] text-ink-dim mb-1.5";
 
-export function CreateListingForm({
-  category,
-  initialLocation = "",
-}: {
-  category: Category;
-  initialLocation?: string;
-}) {
-  const [state, formAction, isPending] = useActionState(createListingAction, initialState);
-  const [photos, setPhotos] = useState<PhotosState>(emptyPhotosState);
+export function EditListingForm({ listing }: { listing: ListingWithRelations }) {
+  const [state, formAction, isPending] = useActionState(updateListingAction, initialState);
+  const [photos, setPhotos] = useState<PhotosState>(() => photosStateFromExisting(listing.photos));
+  const [removedPhotoIds, setRemovedPhotoIds] = useState<string[]>([]);
   const [fields, setFields] = useState<PreviewFields>({
-    title: "",
-    price: "",
-    spec: "",
-    location: initialLocation,
-    grade: null,
-    benchmarkLabel: "",
-    benchmarkScore: "",
-    wattageDraw: "",
-    bootVerified: false,
+    title: listing.title,
+    price: String(listing.price),
+    spec: listing.spec,
+    location: listing.location,
+    grade: listing.grade,
+    benchmarkLabel: listing.benchmarkLabel,
+    benchmarkScore: listing.benchmarkScore ? String(listing.benchmarkScore) : "",
+    wattageDraw: listing.wattageDraw ? String(listing.wattageDraw) : "",
+    bootVerified: listing.bootVerified,
   });
 
   function patchFields(patch: Partial<PreviewFields>) {
     setFields((f) => ({ ...f, ...patch }));
   }
 
+  const category = listing.category;
   const tier = categoryDiagnosticTier[category];
   const hasBenchmark = tier === "full";
   const hasWattage = tier === "full" || tier === "wattage-boot";
@@ -61,7 +58,11 @@ export function CreateListingForm({
 
   return (
     <form action={formAction}>
+      <input type="hidden" name="id" value={listing.id} />
       <input type="hidden" name="category" value={category} />
+      {removedPhotoIds.map((id) => (
+        <input key={id} type="hidden" name="removedPhotoIds" value={id} />
+      ))}
 
       {state.error && (
         <p className="text-[13px] text-danger border border-danger/40 bg-danger/5 px-4 py-3 mb-6">
@@ -74,7 +75,8 @@ export function CreateListingForm({
           <PhotoWorkspace
             tier={tier}
             photos={photos}
-            onPhotosChange={(key, files) => setPhotos((p) => ({ ...p, [key]: files }))}
+            onPhotosChange={(key, items) => setPhotos((p) => ({ ...p, [key]: items }))}
+            onRemoveExisting={(id) => setRemovedPhotoIds((ids) => [...ids, id])}
           />
 
           <div className="flex items-center gap-3">
@@ -95,6 +97,13 @@ export function CreateListingForm({
             <h2 className="font-display font-medium text-[15px]">Basics</h2>
 
             <div>
+              <span className={labelClass}>Category</span>
+              <p className="text-[14px] text-ink px-3 h-10 flex items-center border border-line bg-bg-inset/50">
+                {categoryLabels[category]}
+              </p>
+            </div>
+
+            <div>
               <label htmlFor="title" className={labelClass}>
                 Title
               </label>
@@ -103,6 +112,7 @@ export function CreateListingForm({
                 name="title"
                 type="text"
                 required
+                defaultValue={fields.title}
                 placeholder={categoryTitlePlaceholder[category]}
                 className={inputClass}
                 onChange={(e) => patchFields({ title: e.target.value })}
@@ -119,6 +129,7 @@ export function CreateListingForm({
                 type="number"
                 min={0}
                 required
+                defaultValue={fields.price}
                 placeholder="1450"
                 className={inputClass}
                 onChange={(e) => patchFields({ price: e.target.value })}
@@ -134,6 +145,7 @@ export function CreateListingForm({
                 name="spec"
                 type="text"
                 required
+                defaultValue={fields.spec}
                 placeholder={categorySpecPlaceholder[category]}
                 className={inputClass}
                 onChange={(e) => patchFields({ spec: e.target.value })}
@@ -146,7 +158,7 @@ export function CreateListingForm({
               </label>
               <LocationAutocomplete
                 name="location"
-                initialValue={initialLocation}
+                initialValue={fields.location}
                 onValueChange={(value) => patchFields({ location: value })}
               />
             </div>
@@ -162,6 +174,7 @@ export function CreateListingForm({
                       name="grade"
                       value={g}
                       required
+                      defaultChecked={fields.grade === g}
                       className="peer sr-only"
                       onChange={() => patchFields({ grade: g })}
                     />
@@ -186,6 +199,7 @@ export function CreateListingForm({
                 required
                 maxLength={2000}
                 rows={5}
+                defaultValue={listing.description}
                 placeholder="Describe your item — what's included, why you're selling, any quirks worth mentioning."
                 className={inputClass + " h-auto py-2 resize-y"}
               />
@@ -206,6 +220,7 @@ export function CreateListingForm({
                     name="benchmarkLabel"
                     type="text"
                     required
+                    defaultValue={fields.benchmarkLabel}
                     placeholder="Time Spy"
                     className={inputClass}
                     onChange={(e) => patchFields({ benchmarkLabel: e.target.value })}
@@ -221,6 +236,7 @@ export function CreateListingForm({
                     type="number"
                     min={0}
                     required
+                    defaultValue={fields.benchmarkScore}
                     placeholder="18340"
                     className={inputClass}
                     onChange={(e) => patchFields({ benchmarkScore: e.target.value })}
@@ -240,6 +256,7 @@ export function CreateListingForm({
                   type="number"
                   min={0}
                   required
+                  defaultValue={fields.wattageDraw}
                   placeholder="0 if not applicable"
                   className={inputClass}
                   onChange={(e) => patchFields({ wattageDraw: e.target.value })}
@@ -259,6 +276,7 @@ export function CreateListingForm({
                   type="checkbox"
                   name="bootVerified"
                   className="peer sr-only"
+                  defaultChecked={fields.bootVerified}
                   onChange={(e) => patchFields({ bootVerified: e.target.checked })}
                 />
                 <span className="absolute inset-0 border border-line bg-bg-inset transition-colors peer-checked:bg-amber peer-checked:border-amber" />
@@ -271,23 +289,15 @@ export function CreateListingForm({
             <p className={`text-[13px] ${photos.condition.length ? "text-pass font-medium" : "text-ink-dim"}`}>
               {photos.condition.length
                 ? "Looks good — condition photos attached."
-                : "Add at least one condition photo to publish."}
+                : "Add at least one condition photo to save."}
             </p>
             <div className="flex gap-3 ml-auto">
-              <button
-                type="button"
-                disabled
-                title="Coming soon"
-                className="border border-line text-ink-dim text-[14px] font-medium px-5 h-11 opacity-50 cursor-not-allowed"
-              >
-                Save draft
-              </button>
               <button
                 type="submit"
                 disabled={isPending}
                 className="bg-amber text-bg-inset text-[14px] font-medium px-6 h-11 rounded-(--radius-tag) hover:bg-amber/90 transition-colors disabled:opacity-60"
               >
-                {isPending ? "Publishing…" : "Publish listing"}
+                {isPending ? "Saving…" : "Save changes"}
               </button>
             </div>
           </div>

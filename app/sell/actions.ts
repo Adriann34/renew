@@ -3,11 +3,16 @@
 import { randomUUID } from "node:crypto";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import { Category, type Grade, type PhotoKind } from "@prisma/client";
+import type { PhotoKind } from "@prisma/client";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
-import { compressImage } from "@/lib/image";
-import { categoryDiagnosticTier } from "@/lib/category";
+import { parseListingFields } from "@/lib/listingValidation";
+import {
+  ALLOWED_PHOTO_TYPES,
+  MAX_PHOTO_BYTES,
+  MAX_PHOTOS_PER_LISTING,
+  uploadPhoto,
+} from "@/lib/photoUpload";
 
 export type CreateListingState = { error: string | null };
 
@@ -17,48 +22,6 @@ const PHOTO_FIELDS: { field: string; kind: PhotoKind }[] = [
   { field: "photos_benchmark", kind: "BENCHMARK" },
   { field: "photos_boot", kind: "BOOT" },
 ];
-
-const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
-const MAX_PHOTOS_PER_LISTING = 20;
-const ALLOWED_PHOTO_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "image/heic", "image/heif"]);
-
-const MAX_TITLE_LEN = 120;
-const MAX_SPEC_LEN = 120;
-const MAX_LOCATION_LEN = 120;
-const MAX_DESCRIPTION_LEN = 2000;
-const MAX_BENCHMARK_LABEL_LEN = 60;
-const MAX_PRICE = 1_000_000;
-const MAX_WATTAGE = 5000;
-const MAX_BENCHMARK_SCORE = 10_000_000;
-
-async function uploadPhoto(
-  supabase: Awaited<ReturnType<typeof createClient>>,
-  listingId: string,
-  kind: PhotoKind,
-  file: File
-): Promise<{ kind: PhotoKind; url: string; path: string }> {
-  const original = Buffer.from(await file.arrayBuffer());
-  const compressed = await compressImage(original);
-  const path = `${listingId}/${kind}/${randomUUID()}.webp`;
-
-  const { error } = await supabase.storage
-    .from("listing-photos")
-    .upload(path, compressed, { contentType: "image/webp" });
-  if (error) throw error;
-
-  const { data } = supabase.storage.from("listing-photos").getPublicUrl(path);
-  return { kind, url: data.publicUrl, path };
-}
-
-function str(formData: FormData, key: string): string {
-  const value = formData.get(key);
-  return typeof value === "string" ? value.trim() : "";
-}
-
-function num(formData: FormData, key: string): number {
-  const value = formData.get(key);
-  return typeof value === "string" ? Number(value) : NaN;
-}
 
 export async function createListingAction(
   _prevState: CreateListingState,
@@ -73,59 +36,23 @@ export async function createListingAction(
     return { error: "You must be signed in to create a listing." };
   }
 
-  const title = str(formData, "title");
-  const categoryRaw = str(formData, "category");
-  const price = num(formData, "price");
-  const spec = str(formData, "spec");
-  const location = str(formData, "location");
-  const description = str(formData, "description");
-  const gradeRaw = str(formData, "grade");
-  const bootVerified = formData.get("bootVerified") === "on";
-
-  if (!title || !categoryRaw || !spec || !location || !description || !gradeRaw) {
-    return { error: "Please fill in all required fields." };
+  const parsed = parseListingFields(formData);
+  if ("error" in parsed) {
+    return { error: parsed.error };
   }
-  if (!Object.values(Category).includes(categoryRaw as Category)) {
-    return { error: "Please choose a valid category." };
-  }
-  if (gradeRaw !== "A" && gradeRaw !== "B" && gradeRaw !== "C") {
-    return { error: "Please choose a valid condition." };
-  }
-
-  // Which diagnostic fields this category's form actually collects — kept in
-  // sync with CreateListingForm, which only renders the matching inputs.
-  const tier = categoryDiagnosticTier[categoryRaw as Category];
-  const hasBenchmark = tier === "full";
-  const hasWattage = tier === "full" || tier === "wattage-boot";
-
-  const benchmarkLabel = hasBenchmark ? str(formData, "benchmarkLabel") : "";
-  const benchmarkScore = hasBenchmark ? num(formData, "benchmarkScore") : 0;
-  const wattageDraw = hasWattage ? num(formData, "wattageDraw") : 0;
-
-  if (hasBenchmark && !benchmarkLabel) {
-    return { error: "Please fill in all required fields." };
-  }
-  if (Number.isNaN(price) || (hasBenchmark && Number.isNaN(benchmarkScore)) || (hasWattage && Number.isNaN(wattageDraw))) {
-    return { error: "Price, benchmark score, and wattage draw must be numbers." };
-  }
-  if (price < 0 || price > MAX_PRICE) {
-    return { error: `Price must be between 0 and ${MAX_PRICE.toLocaleString()}.` };
-  }
-  if (hasWattage && (wattageDraw < 0 || wattageDraw > MAX_WATTAGE)) {
-    return { error: `Wattage draw must be between 0 and ${MAX_WATTAGE}.` };
-  }
-  if (hasBenchmark && (benchmarkScore < 0 || benchmarkScore > MAX_BENCHMARK_SCORE)) {
-    return { error: "Benchmark score is out of range." };
-  }
-  if (
-    title.length > MAX_TITLE_LEN ||
-    spec.length > MAX_SPEC_LEN ||
-    location.length > MAX_LOCATION_LEN ||
-    description.length > MAX_DESCRIPTION_LEN ||
-    benchmarkLabel.length > MAX_BENCHMARK_LABEL_LEN
-  ) {
-    return { error: "One or more fields exceed their maximum length." };
-  }
+  const {
+    title,
+    category: categoryRaw,
+    price,
+    grade: gradeRaw,
+    spec,
+    location,
+    description,
+    bootVerified,
+    benchmarkLabel,
+    benchmarkScore,
+    wattageDraw,
+  } = parsed.fields;
 
   const conditionFiles = formData
     .getAll("photos_condition")
@@ -184,9 +111,9 @@ export async function createListingAction(
       data: {
         id: listingId,
         title,
-        category: categoryRaw as Category,
+        category: categoryRaw,
         price,
-        grade: gradeRaw as Grade,
+        grade: gradeRaw,
         spec,
         location,
         description,

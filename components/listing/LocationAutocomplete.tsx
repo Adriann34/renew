@@ -7,12 +7,14 @@ const inputClass =
 
 export function LocationAutocomplete({
   name,
+  initialValue,
   onValueChange,
 }: {
   name: string;
+  initialValue?: string;
   onValueChange?: (value: string) => void;
 }) {
-  const [value, setValue] = useState("");
+  const [value, setValue] = useState(initialValue ?? "");
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);

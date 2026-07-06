@@ -1,11 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { PhotoKind } from "@prisma/client";
 import type { DiagnosticTier } from "@/lib/category";
 
 export type PhotoCategoryKey = "condition" | "burn_in" | "benchmark" | "boot";
 
-export type PhotosState = Record<PhotoCategoryKey, File[]>;
+export type PhotoItem = { type: "new"; file: File } | { type: "existing"; id: string; url: string };
+
+export type PhotosState = Record<PhotoCategoryKey, PhotoItem[]>;
 
 export const emptyPhotosState: PhotosState = {
   condition: [],
@@ -13,6 +16,29 @@ export const emptyPhotosState: PhotosState = {
   benchmark: [],
   boot: [],
 };
+
+const PHOTO_KIND_TO_CATEGORY: Record<PhotoKind, PhotoCategoryKey> = {
+  CONDITION: "condition",
+  BURN_IN: "burn_in",
+  BENCHMARK: "benchmark",
+  BOOT: "boot",
+};
+
+/** Seeds a PhotosState from an existing listing's photos, for the edit form. */
+export function photosStateFromExisting(
+  photos: { id: string; url: string; kind: PhotoKind }[]
+): PhotosState {
+  const state: PhotosState = {
+    condition: [],
+    burn_in: [],
+    benchmark: [],
+    boot: [],
+  };
+  for (const photo of photos) {
+    state[PHOTO_KIND_TO_CATEGORY[photo.kind]].push({ type: "existing", id: photo.id, url: photo.url });
+  }
+  return state;
+}
 
 const ALL_PHOTO_CATEGORIES: {
   key: PhotoCategoryKey;
@@ -60,24 +86,35 @@ export function getPhotoCategoriesForTier(tier: DiagnosticTier) {
   return ALL_PHOTO_CATEGORIES.filter((c) => c.tiers.includes(tier));
 }
 
-function useObjectUrls(files: File[]): string[] {
-  const urls = useMemo(() => files.map((f) => URL.createObjectURL(f)), [files]);
+/** Resolves a mix of existing (already-hosted) and new (in-memory) photos to displayable URLs, creating/revoking object URLs only for the new ones. */
+export function usePhotoUrls(items: PhotoItem[]): string[] {
+  const urls = useMemo(
+    () => items.map((item) => (item.type === "existing" ? item.url : URL.createObjectURL(item.file))),
+    [items]
+  );
   useEffect(() => {
-    return () => urls.forEach((u) => URL.revokeObjectURL(u));
+    return () => {
+      items.forEach((item, i) => {
+        if (item.type === "new") URL.revokeObjectURL(urls[i]);
+      });
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [urls]);
   return urls;
 }
 
-/** Keeps a hidden, named file input in sync with in-memory File[] state so it rides along with the surrounding <form> submission. */
-function HiddenFileInput({ field, files }: { field: string; files: File[] }) {
+/** Keeps a hidden, named file input in sync with the "new" photos so they ride along with the surrounding <form> submission. Existing photos need no file input — the server already has them. */
+function HiddenFileInput({ field, items }: { field: string; items: PhotoItem[] }) {
   const ref = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!ref.current) return;
     const dt = new DataTransfer();
-    files.forEach((f) => dt.items.add(f));
+    items.forEach((item) => {
+      if (item.type === "new") dt.items.add(item.file);
+    });
     ref.current.files = dt.files;
-  }, [files]);
+  }, [items]);
 
   return <input ref={ref} type="file" name={field} multiple hidden />;
 }
@@ -86,10 +123,13 @@ export function PhotoWorkspace({
   tier,
   photos,
   onPhotosChange,
+  onRemoveExisting,
 }: {
   tier: DiagnosticTier;
   photos: PhotosState;
-  onPhotosChange: (key: PhotoCategoryKey, files: File[]) => void;
+  onPhotosChange: (key: PhotoCategoryKey, items: PhotoItem[]) => void;
+  /** Called when a previously-uploaded photo is removed, so the caller can track it for deletion on save. */
+  onRemoveExisting?: (id: string) => void;
 }) {
   const categories = getPhotoCategoriesForTier(tier);
   const [activeTab, setActiveTab] = useState<PhotoCategoryKey>("condition");
@@ -105,17 +145,19 @@ export function PhotoWorkspace({
   const meta = categories.find((c) => c.key === activeTab) ?? categories[0];
   const activePhotos = photos[activeTab];
   const idx = Math.min(activeIndex[activeTab], Math.max(0, activePhotos.length - 1));
-  const urls = useObjectUrls(activePhotos);
+  const urls = usePhotoUrls(activePhotos);
 
   function addFiles(fileList: FileList | File[]) {
     const files = Array.from(fileList).filter((f) => f.type.startsWith("image/"));
     if (!files.length) return;
-    const next = [...photos[activeTab], ...files];
+    const next: PhotoItem[] = [...photos[activeTab], ...files.map((file) => ({ type: "new" as const, file }))];
     onPhotosChange(activeTab, next);
     setActiveIndex((s) => ({ ...s, [activeTab]: next.length - 1 }));
   }
 
   function removeAt(i: number) {
+    const item = photos[activeTab][i];
+    if (item.type === "existing") onRemoveExisting?.(item.id);
     const next = photos[activeTab].filter((_, j) => j !== i);
     onPhotosChange(activeTab, next);
     setActiveIndex((s) => ({ ...s, [activeTab]: Math.max(0, Math.min(s[activeTab], next.length - 1)) }));
@@ -190,7 +232,7 @@ export function PhotoWorkspace({
               <line x1="12" y1="4" x2="12" y2="16" />
             </svg>
             <span className="text-[13px] font-medium text-ink-dim">Drop photos here, or click to browse</span>
-            <span className="text-[11px] text-ink-dim/70 max-w-[220px]">{meta.hint}</span>
+            <span className="text-[11px] text-ink-dim/70 max-w-55">{meta.hint}</span>
           </button>
         ) : (
           <>
@@ -288,7 +330,7 @@ export function PhotoWorkspace({
       />
 
       {categories.map((c) => (
-        <HiddenFileInput key={c.key} field={c.field} files={photos[c.key]} />
+        <HiddenFileInput key={c.key} field={c.field} items={photos[c.key]} />
       ))}
     </div>
   );

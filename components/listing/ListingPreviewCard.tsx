@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import type { Grade } from "@prisma/client";
 import { gradeColor, gradeLabel } from "@/lib/grade";
 
@@ -18,18 +18,17 @@ export type PreviewFields = {
 
 export function ListingPreviewCard({
   fields,
-  photos,
+  photos: urls,
   filledCategories,
   totalCategories,
 }: {
   fields: PreviewFields;
-  photos: File[];
+  /** Already-resolved display URLs (object URLs for new files, hosted URLs for existing photos). */
+  photos: string[];
   filledCategories: number;
   totalCategories: number;
 }) {
   const [index, setIndex] = useState(0);
-  const urls = useMemo(() => photos.map((f) => URL.createObjectURL(f)), [photos]);
-  useEffect(() => () => urls.forEach((u) => URL.revokeObjectURL(u)), [urls]);
 
   const clampedIndex = Math.min(index, Math.max(0, urls.length - 1));
   const price = Number(fields.price.replace(/[^0-9.]/g, ""));

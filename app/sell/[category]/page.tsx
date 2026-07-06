@@ -4,6 +4,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { CreateListingForm } from "@/components/listing/CreateListingForm";
 import { createClient } from "@/lib/supabase/server";
+import { prisma } from "@/lib/prisma";
 import { categoryFromSlug, categoryLabels } from "@/lib/category";
 
 export default async function SellCategoryPage({
@@ -20,6 +21,8 @@ export default async function SellCategoryPage({
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect(`/signin?next=/sell/${slug}`);
+
+  const dbUser = await prisma.user.findUnique({ where: { id: user.id } });
 
   return (
     <main>
@@ -40,7 +43,7 @@ export default async function SellCategoryPage({
           faster and for better prices.
         </p>
 
-        <CreateListingForm category={category} />
+        <CreateListingForm category={category} initialLocation={dbUser?.location ?? ""} />
       </div>
 
       <Footer />
