@@ -19,9 +19,7 @@ export async function Navbar() {
           </span>
         </Link>
 
-        <div className="hidden md:flex items-center flex-1 max-w-md">
-          <SearchBar />
-        </div>
+        <SearchBar />
 
         <nav className="hidden lg:flex items-center gap-6 text-[13px] text-ink-dim">
           <Link href="/browse" className="hover:text-ink transition-colors">Browse</Link>

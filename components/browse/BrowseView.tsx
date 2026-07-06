@@ -179,7 +179,7 @@ export function BrowseView({
           Filter by category, grade, and the numbers sellers actually tested — draw under load,
           benchmark score, boot status — before you talk to anyone.
         </p>
-        <div className="flex items-center border border-line bg-bg-inset px-3 h-11 max-w-xl mb-8 focus-within:border-ink-dim transition-colors">
+        <div className="flex items-center border border-line bg-bg-inset px-3 h-11 max-w-md mb-8 focus-within:border-ink-dim transition-colors">
           <span className="text-ink-dim text-sm font-mono">⌕</span>
           <input
             type="search"
