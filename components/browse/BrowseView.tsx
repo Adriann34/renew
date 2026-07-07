@@ -171,9 +171,6 @@ export function BrowseView({
   return (
     <>
       <div className="max-w-7xl mx-auto px-6 pt-10">
-        <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-amber mb-3">
-          {categoryTotal} {categoryLabel} · every one with a diagnostic report
-        </p>
         <h1 className="font-display font-semibold text-3xl md:text-4xl mb-2">Browse listings</h1>
         <p className="text-ink-dim text-[15px] max-w-xl mb-6">
           Filter by category, grade, and the numbers sellers actually tested — draw under load,
@@ -202,7 +199,7 @@ export function BrowseView({
         </div>
       </div>
 
-      <div className="border-b border-line overflow-x-auto">
+      <div className="border-b border-line overflow-x-auto overflow-y-hidden overscroll-x-contain">
         <div className="flex max-w-7xl mx-auto px-6">
           <CategoryTabButton
             active={category === "all"}
