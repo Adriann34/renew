@@ -1,0 +1,12 @@
+{
+  "name": "Renew",
+  "short_name": "Renew",
+  "description": "Buy and sell used GPUs, CPUs, and PC hardware with a diagnostic report and photo proof on every listing.",
+  "icons": [
+    { "src": "/android-chrome-192x192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/favicon-512x512.png", "sizes": "512x512", "type": "image/png" }
+  ],
+  "theme_color": "#141414",
+  "background_color": "#141414",
+  "display": "standalone"
+}
