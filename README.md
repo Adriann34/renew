@@ -7,7 +7,7 @@ benchmark score, tested power draw) filled in by the seller, backed by
 photo proof, so buyers can trust a used part before it ships. Buyers and
 sellers can then message each other directly, scoped to that one listing.
 
-Personal project / portfolio piece. Auth (including password reset), real
+Personal project I built it because I wanted to make a marketplace app since my hobby was selling used gpus. Auth (including password reset), real
 Prisma-backed listings (browse/filter/create/edit/delete/save), the
 account dashboard, and listing-scoped realtime chat are all live. Payments
 are next.
