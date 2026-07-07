@@ -7,6 +7,7 @@ import { ListingGallery, type GalleryGroup } from "@/components/listing/ListingG
 import { ListingActions } from "@/components/listing/ListingActions";
 import { DeleteListingButton } from "@/components/listing/DeleteListingButton";
 import { MessageSellerButton } from "@/components/listing/MessageSellerButton";
+import { ListingDescription } from "@/components/listing/ListingDescription";
 import { getListingById } from "@/lib/listings";
 import { isListingSaved } from "@/lib/saved";
 import { createClient } from "@/lib/supabase/server";
@@ -155,16 +156,7 @@ export default async function ListingPage({
             {!isOwner && <MessageSellerButton listingId={listing.id} />}
           </div>
 
-          {listing.description && (
-            <div className="mb-6">
-              <p className="text-[11px] uppercase tracking-widest text-ink-dim mb-2">
-                Description
-              </p>
-              <p className="text-[14px] text-ink whitespace-pre-wrap leading-relaxed">
-                {listing.description}
-              </p>
-            </div>
-          )}
+          {listing.description && <ListingDescription text={listing.description} />}
 
           <button
             type="button"
