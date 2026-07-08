@@ -25,14 +25,9 @@ export const metadata: Metadata = {
   description:
     "Buy and sell used GPUs, CPUs, and PC hardware with a diagnostic report and photo proof on every listing.",
   icons: {
-    icon: [
-      // SVG first: resolution-independent and, unlike the PNG-compressed
-      // .ico below, decodable by Safari (which can't read PNG data in .ico).
-      { url: "/favicon.svg", type: "image/svg+xml" },
-      { url: "/favicon.ico", sizes: "any" },
-      { url: "/favicon-16x16.png", type: "image/png", sizes: "16x16" },
-      { url: "/favicon-32x32.png", type: "image/png", sizes: "32x32" },
-    ],
+    // BMP-encoded .ico (16/32/48) — Safari can't decode SVG favicons or
+    // PNG-compressed .ico frames, so this is the one file every browser reads.
+    icon: [{ url: "/favicon.ico", sizes: "48x48" }],
     apple: [{ url: "/apple-touch-icon.png", sizes: "180x180" }],
   },
   manifest: "/site.webmanifest",
