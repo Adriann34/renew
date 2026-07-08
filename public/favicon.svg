@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Renew">
+  <circle cx="256" cy="256" r="256" fill="#14161c"/>
+  <g fill="#e2a63b" fill-rule="evenodd">
+    <!-- stem -->
+    <rect x="166" y="130" width="64" height="252"/>
+    <!-- bowl (outer D with a counter hole via even-odd) -->
+    <path d="M230 130 H300 C356 130 356 246 300 246 H230 Z M230 168 H294 C312 168 312 208 294 208 H230 Z"/>
+    <!-- leg -->
+    <polygon points="244 214 304 214 372 382 312 382"/>
+  </g>
+</svg>
