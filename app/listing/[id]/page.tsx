@@ -7,6 +7,7 @@ import { ListingGallery, type GalleryGroup } from "@/components/listing/ListingG
 import { ListingActions } from "@/components/listing/ListingActions";
 import { DeleteListingButton } from "@/components/listing/DeleteListingButton";
 import { MessageSellerButton } from "@/components/listing/MessageSellerButton";
+import { BuyNowButton } from "@/components/listing/BuyNowButton";
 import { ListingDescription } from "@/components/listing/ListingDescription";
 import { getListingById } from "@/lib/listings";
 import { isListingSaved } from "@/lib/saved";
@@ -158,16 +159,7 @@ export default async function ListingPage({
 
           {listing.description && <ListingDescription text={listing.description} />}
 
-          <button
-            type="button"
-            disabled
-            className="w-full bg-bg-inset border border-line text-ink-dim text-[14px] font-medium h-11 rounded-(--radius-tag) cursor-not-allowed"
-          >
-            Buy now — coming soon
-          </button>
-          <p className="text-[12px] text-ink-dim text-center mt-2.5">
-            Checkout isn&apos;t live yet — message the seller to arrange a deal.
-          </p>
+          {!isOwner && <BuyNowButton listingId={listing.id} />}
         </div>
       </div>
 
