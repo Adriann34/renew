@@ -113,7 +113,7 @@ model Conversation {
   buyerLastReadAt  DateTime? // per-user read markers — cheaper than per-message readAt
   sellerLastReadAt DateTime?
   createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt // bumped on each new message → inbox sort key
+  updatedAt        DateTime  @updatedAt // auto-bumped on every write (incl. mark-as-read); NOT the inbox sort key — getConversationsForUser sorts by last message time
 
   @@unique([listingId, buyerId]) // one thread per buyer per listing
   @@index([buyerId])
