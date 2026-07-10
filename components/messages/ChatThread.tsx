@@ -206,6 +206,13 @@ export function ChatThread({
           const prev = messages[i - 1];
           const showDivider =
             !prev || new Date(prev.createdAt).toDateString() !== m.createdAt.toDateString();
+          // Persisted attachments are private: fetch them through the authorized route
+          // by message id. Pending sends still show the local blob preview.
+          const attachmentSrc = m.attachmentUrl
+            ? m.pending
+              ? m.attachmentUrl
+              : `/api/chat-attachment/${m.id}`
+            : null;
 
           return (
             <div key={m.id} className="contents">
@@ -223,11 +230,11 @@ export function ChatThread({
                   } ${m.pending ? "opacity-60" : ""}`}
                   style={{ borderRadius: 10, [mine ? "borderTopRightRadius" : "borderTopLeftRadius"]: 3 }}
                 >
-                  {m.attachmentUrl && (
-                    <a href={m.attachmentUrl} target="_blank" rel="noopener noreferrer">
+                  {attachmentSrc && (
+                    <a href={attachmentSrc} target="_blank" rel="noopener noreferrer">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src={m.attachmentUrl}
+                        src={attachmentSrc}
                         alt="Attachment"
                         className={`max-w-full max-h-64 rounded-(--radius-tag) ${m.body ? "mb-1.5" : ""}`}
                       />

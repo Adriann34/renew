@@ -127,7 +127,7 @@ model Message {
   senderId       String
   sender         User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
   body           String       @default("") // may be empty when attachment-only
-  attachmentUrl  String? // public URL of compressed image, if any
+  attachmentUrl  String? // storage path in the private chat-attachments bucket, if any (served via /api/chat-attachment/[id])
   createdAt      DateTime     @default(now())
 
   @@index([conversationId, createdAt])
