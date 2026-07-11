@@ -131,8 +131,8 @@ export default async function ListingPage({
           <div className="flex items-center gap-3 mt-3 mb-6">
             <p className="font-mono text-amber text-2xl">{formatPrice(listing.price)}</p>
             {listing.aiVerified && (
-              <span className="inline-flex items-center gap-1.5 border border-amber text-amber bg-amber/10 text-[11px] font-medium uppercase tracking-wide px-2.5 py-1 rounded-(--radius-tag)">
-                ✦ AI-verified
+              <span className="inline-flex items-center gap-1.5 border border-pass text-pass bg-pass/10 text-[11px] font-medium uppercase tracking-wide px-2.5 py-1 rounded-(--radius-tag)">
+                ✓ Verified
               </span>
             )}
           </div>
