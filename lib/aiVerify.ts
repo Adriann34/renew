@@ -26,7 +26,7 @@ export const PHOTO_KIND_LABEL: Record<PhotoKind, string> = {
  * verdict — verification must never block publishing a listing.
  */
 
-const GEMINI_MODEL = "gemini-2.5-flash";
+const GEMINI_MODEL = "gemini-3.5-flash";
 const GEMINI_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 const REQUEST_TIMEOUT_MS = 25_000;
 
