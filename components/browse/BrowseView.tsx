@@ -110,7 +110,7 @@ export function BrowseView({
       if (priceMin != null && l.price < priceMin) return false;
       if (priceMax != null && l.price > priceMax) return false;
       if (l.wattageDraw > 0 && l.wattageDraw > maxWatt) return false;
-      if (verifiedOnly && !l.bootVerified) return false;
+      if (verifiedOnly && !l.aiVerified) return false;
       return true;
     });
   }, [listings, search, category, grades, countries, priceMin, priceMax, maxWatt, verifiedOnly]);

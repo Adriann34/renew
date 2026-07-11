@@ -95,7 +95,7 @@ async function gatherEditAiImages(
   for (const { field, kind } of PHOTO_FIELDS) {
     const files = formData.getAll(field).filter((f): f is File => f instanceof File && f.size > 0);
     for (const file of files) {
-      images.push({ label: PHOTO_KIND_LABEL[kind], buffer: Buffer.from(await file.arrayBuffer()) });
+      images.push({ label: PHOTO_KIND_LABEL[kind], kind, buffer: Buffer.from(await file.arrayBuffer()) });
     }
   }
 
@@ -104,7 +104,7 @@ async function gatherEditAiImages(
     try {
       const res = await fetch(photo.url);
       if (!res.ok) continue;
-      images.push({ label: PHOTO_KIND_LABEL[photo.kind], buffer: Buffer.from(await res.arrayBuffer()) });
+      images.push({ label: PHOTO_KIND_LABEL[photo.kind], kind: photo.kind, buffer: Buffer.from(await res.arrayBuffer()) });
     } catch {
       // Non-fatal: verify with whatever photos we could load.
     }
@@ -232,7 +232,7 @@ export async function updateListingAction(
     );
     aiFields = aiResult
       ? {
-          aiVerified: aiResult.status === "verified",
+          aiVerified: aiResult.verified,
           aiVerdict: aiResult as unknown as Prisma.InputJsonValue,
           aiCheckedAt: new Date(),
         }

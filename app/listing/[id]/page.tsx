@@ -68,8 +68,29 @@ export default async function ListingPage({
       </div>
 
       <div className="max-w-5xl mx-auto px-6 py-8 flex flex-col lg:flex-row gap-10 items-start">
-        <div className="w-full lg:w-125 lg:sticky lg:top-22 shrink-0">
+        <div className="w-full lg:w-125 shrink-0 space-y-8">
           <ListingGallery groups={groups} title={listing.title} />
+
+          <div className="flex items-center gap-3 border-t border-line pt-6">
+            <div className="w-10 h-10 shrink-0 overflow-hidden flex items-center justify-center rounded-(--radius-tag) bg-amber text-bg-inset font-mono font-semibold text-sm">
+              {listing.seller.avatarUrl ? (
+                <img src={listing.seller.avatarUrl} alt={sellerLabel} className="w-full h-full object-cover" />
+              ) : (
+                initials
+              )}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[14px] font-medium truncate">{sellerLabel}</p>
+              <p className="text-[12px] text-ink-dim truncate">{listing.location}</p>
+            </div>
+            {!isOwner && <MessageSellerButton listingId={listing.id} />}
+          </div>
+
+          {listing.description && (
+            <div className="border-t border-line pt-6">
+              <ListingDescription text={listing.description} />
+            </div>
+          )}
         </div>
 
         <div className="w-full lg:flex-1 lg:min-w-0">
@@ -109,14 +130,9 @@ export default async function ListingPage({
 
           <div className="flex items-center gap-3 mt-3 mb-6">
             <p className="font-mono text-amber text-2xl">{formatPrice(listing.price)}</p>
-            {aiVerdict?.status === "verified" && (
+            {listing.aiVerified && (
               <span className="inline-flex items-center gap-1.5 border border-amber text-amber bg-amber/10 text-[11px] font-medium uppercase tracking-wide px-2.5 py-1 rounded-(--radius-tag)">
                 ✦ AI-verified
-              </span>
-            )}
-            {listing.bootVerified && (
-              <span className="inline-flex items-center gap-1.5 border border-pass text-pass bg-pass/10 text-[11px] font-medium uppercase tracking-wide px-2.5 py-1 rounded-(--radius-tag)">
-                ✓ Verified listing
               </span>
             )}
           </div>
@@ -152,23 +168,6 @@ export default async function ListingPage({
           </div>
 
           {aiVerdict && <AiVerdictPanel result={aiVerdict} />}
-
-          <div className="flex items-center gap-3 py-4 border-t border-b border-line mb-6">
-            <div className="w-10 h-10 shrink-0 overflow-hidden flex items-center justify-center rounded-(--radius-tag) bg-amber text-bg-inset font-mono font-semibold text-sm">
-              {listing.seller.avatarUrl ? (
-                <img src={listing.seller.avatarUrl} alt={sellerLabel} className="w-full h-full object-cover" />
-              ) : (
-                initials
-              )}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="text-[14px] font-medium truncate">{sellerLabel}</p>
-              <p className="text-[12px] text-ink-dim truncate">{listing.location}</p>
-            </div>
-            {!isOwner && <MessageSellerButton listingId={listing.id} />}
-          </div>
-
-          {listing.description && <ListingDescription text={listing.description} />}
 
           {!isOwner && <BuyNowButton listingId={listing.id} />}
         </div>

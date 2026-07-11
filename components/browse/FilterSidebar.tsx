@@ -190,8 +190,8 @@ export function FilterSidebar({
             className="w-full flex items-center justify-between text-[13.5px]"
           >
             <span className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-pass" />
-              Verified listings only
+              <span className="w-1.5 h-1.5 rounded-full bg-amber" />
+              AI-verified only
             </span>
             <span
               className={`relative w-9 h-5 rounded-full shrink-0 transition-colors ${

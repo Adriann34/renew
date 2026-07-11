@@ -16,8 +16,10 @@ import {
 import {
   isAiVerificationEnabled,
   verifyListingClaims,
+  autofillDiagnostics,
   PHOTO_KIND_LABEL,
   type AiImageInput,
+  type AutofillResult,
 } from "@/lib/aiVerify";
 
 export type CreateListingState = { error: string | null };
@@ -86,7 +88,7 @@ export async function createListingAction(
         return { error: `Each photo must be under ${MAX_PHOTO_BYTES / (1024 * 1024)}MB.` };
       }
       uploadTasks.push(uploadPhoto(supabase, listingId, kind, file));
-      aiImages.push({ label: PHOTO_KIND_LABEL[kind], buffer: Buffer.from(await file.arrayBuffer()) });
+      aiImages.push({ label: PHOTO_KIND_LABEL[kind], kind, buffer: Buffer.from(await file.arrayBuffer()) });
     }
   }
 
@@ -125,7 +127,7 @@ export async function createListingAction(
   const aiResult = await verifyPromise;
   const aiFields = aiResult
     ? {
-        aiVerified: aiResult.status === "verified",
+        aiVerified: aiResult.verified,
         aiVerdict: aiResult as unknown as Prisma.InputJsonValue,
         aiCheckedAt: new Date(),
       }
@@ -173,4 +175,35 @@ export async function createListingAction(
 
   revalidatePath("/");
   redirect(`/listing/${listing.id}`);
+}
+
+export type AutofillState = { fields: AutofillResult } | { error: string };
+
+/**
+ * Reads the proof photos already attached in the create form and proposes the
+ * diagnostic-report fields (grade, benchmark, wattage, boot). Auth-checked and
+ * server-authoritative — the extraction runs here, not on the client. The client
+ * gates this behind having the photos; this re-validates images defensively.
+ */
+export async function autofillDiagnosticsAction(formData: FormData): Promise<AutofillState> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "You must be signed in." };
+  if (!isAiVerificationEnabled()) return { error: "AI autofill isn't available right now." };
+
+  const aiImages: AiImageInput[] = [];
+  for (const { field, kind } of PHOTO_FIELDS) {
+    const files = formData.getAll(field).filter((f): f is File => f instanceof File && f.size > 0);
+    for (const file of files) {
+      if (!ALLOWED_PHOTO_TYPES.has(file.type) || file.size > MAX_PHOTO_BYTES) continue;
+      aiImages.push({ label: PHOTO_KIND_LABEL[kind], kind, buffer: Buffer.from(await file.arrayBuffer()) });
+    }
+  }
+  if (aiImages.length === 0) return { error: "Add your proof photos first." };
+
+  const result = await autofillDiagnostics(aiImages);
+  if (!result) return { error: "Couldn't read the photos — please fill the report in manually." };
+  return { fields: result };
 }

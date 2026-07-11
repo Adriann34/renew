@@ -2,7 +2,12 @@
 
 import { useActionState, useState } from "react";
 import type { Category } from "@prisma/client";
-import { createListingAction, type CreateListingState } from "@/app/sell/actions";
+import {
+  createListingAction,
+  autofillDiagnosticsAction,
+  type CreateListingState,
+} from "@/app/sell/actions";
+import { Spinner } from "@/components/Spinner";
 import { LocationAutocomplete } from "@/components/listing/LocationAutocomplete";
 import {
   PhotoWorkspace,
@@ -46,6 +51,9 @@ export function CreateListingForm({
     bootVerified: false,
   });
 
+  const [autofilling, setAutofilling] = useState(false);
+  const [autofillError, setAutofillError] = useState<string | null>(null);
+
   function patchFields(patch: Partial<PreviewFields>) {
     setFields((f) => ({ ...f, ...patch }));
   }
@@ -58,6 +66,41 @@ export function CreateListingForm({
   const flatPhotos = photoCategories.flatMap((c) => photos[c.key]);
   const flatPhotoUrls = usePhotoUrls(flatPhotos);
   const filledCategories = photoCategories.filter((c) => photos[c.key].length > 0).length;
+
+  // AI autofill is gated on having a photo in every proof category, so the model
+  // has evidence for each diagnostic field. The extraction itself runs server-side.
+  const allCategoriesFilled = filledCategories === photoCategories.length;
+
+  async function handleAutofill() {
+    if (!allCategoriesFilled || autofilling) return;
+    setAutofillError(null);
+    setAutofilling(true);
+    try {
+      const fd = new FormData();
+      for (const c of photoCategories) {
+        for (const item of photos[c.key]) {
+          if (item.type === "new") fd.append(c.field, item.file);
+        }
+      }
+      const res = await autofillDiagnosticsAction(fd);
+      if ("error" in res) {
+        setAutofillError(res.error);
+        return;
+      }
+      const f = res.fields;
+      patchFields({
+        grade: f.grade,
+        benchmarkLabel: f.benchmarkLabel,
+        benchmarkScore: f.benchmarkScore ? String(f.benchmarkScore) : "",
+        wattageDraw: f.wattageDraw ? String(f.wattageDraw) : "",
+        bootVerified: f.bootVerified,
+      });
+    } catch {
+      setAutofillError("Autofill failed. Please try again.");
+    } finally {
+      setAutofilling(false);
+    }
+  }
 
   return (
     <form action={formAction}>
@@ -162,6 +205,7 @@ export function CreateListingForm({
                       name="grade"
                       value={g}
                       required
+                      checked={fields.grade === g}
                       className="peer sr-only"
                       onChange={() => patchFields({ grade: g })}
                     />
@@ -193,7 +237,33 @@ export function CreateListingForm({
           </section>
 
           <section className="border border-line bg-bg-elevated p-6 space-y-5">
-            <h2 className="font-display font-medium text-[15px]">Diagnostic report</h2>
+            <div className="space-y-2">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="font-display font-medium text-[15px]">Diagnostic report</h2>
+                {hasBenchmark && (
+                  <button
+                    type="button"
+                    onClick={handleAutofill}
+                    disabled={!allCategoriesFilled || autofilling || isPending}
+                    title={
+                      allCategoriesFilled
+                        ? "Read your proof photos and fill this in"
+                        : "Add a photo to each proof category first"
+                    }
+                    className="inline-flex items-center gap-1.5 border border-teal text-teal text-[12.5px] font-medium px-3 h-8 rounded-(--radius-tag) hover:bg-teal/10 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                  >
+                    {autofilling ? <Spinner size={14} /> : <span aria-hidden>✦</span>}
+                    {autofilling ? "Reading photos…" : "AI autofill"}
+                  </button>
+                )}
+              </div>
+              {hasBenchmark && !allCategoriesFilled && (
+                <p className="text-[11.5px] text-ink-dim">
+                  Add a photo to each proof category to enable AI autofill.
+                </p>
+              )}
+              {autofillError && <p className="text-[12px] text-danger">{autofillError}</p>}
+            </div>
 
             {hasBenchmark && (
               <div className="grid grid-cols-2 gap-4">
@@ -208,6 +278,7 @@ export function CreateListingForm({
                     required
                     placeholder="Time Spy"
                     className={inputClass}
+                    value={fields.benchmarkLabel}
                     onChange={(e) => patchFields({ benchmarkLabel: e.target.value })}
                   />
                 </div>
@@ -223,6 +294,7 @@ export function CreateListingForm({
                     required
                     placeholder="18340"
                     className={inputClass}
+                    value={fields.benchmarkScore}
                     onChange={(e) => patchFields({ benchmarkScore: e.target.value })}
                   />
                 </div>
@@ -242,6 +314,7 @@ export function CreateListingForm({
                   required
                   placeholder="0 if not applicable"
                   className={inputClass}
+                  value={fields.wattageDraw}
                   onChange={(e) => patchFields({ wattageDraw: e.target.value })}
                 />
               </div>
@@ -259,6 +332,7 @@ export function CreateListingForm({
                   type="checkbox"
                   name="bootVerified"
                   className="peer sr-only"
+                  checked={fields.bootVerified}
                   onChange={(e) => patchFields({ bootVerified: e.target.checked })}
                 />
                 <span className="absolute inset-0 border border-line bg-bg-inset transition-colors peer-checked:bg-amber peer-checked:border-amber" />
@@ -284,9 +358,10 @@ export function CreateListingForm({
               </button>
               <button
                 type="submit"
-                disabled={isPending}
-                className="bg-amber text-bg-inset text-[14px] font-medium px-6 h-11 rounded-(--radius-tag) hover:bg-amber/90 transition-colors disabled:opacity-60"
+                disabled={isPending || autofilling}
+                className="inline-flex items-center justify-center gap-2 bg-amber text-bg-inset text-[14px] font-medium px-6 h-11 rounded-(--radius-tag) hover:bg-amber/90 transition-colors disabled:opacity-60"
               >
+                {isPending && <Spinner size={16} />}
                 {isPending ? "Publishing…" : "Publish listing"}
               </button>
             </div>
