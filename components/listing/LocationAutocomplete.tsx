@@ -68,7 +68,7 @@ export function LocationAutocomplete({
       />
       {open && suggestions.length > 0 && (
         <ul className="absolute z-10 top-full left-0 right-0 mt-1 border border-line bg-bg-elevated max-h-56 overflow-y-auto">
-          {suggestions.map((suggestion) => (
+          {Array.from(new Set(suggestions)).map((suggestion) => (
             <li key={suggestion}>
               <button
                 type="button"
