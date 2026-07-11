@@ -68,6 +68,13 @@ model Listing {
   benchmarkLabel  String
   wattageDraw     Int
   bootVerified    Boolean        @default(false)
+  // AI photo-verification (Gemini vision): does the seller's proof match their claims?
+  // aiVerdict holds the full structured AiVerificationResult; aiVerified is the
+  // denormalized "overall verified" flag for cheap badge/filter checks. Both are
+  // cleared/refreshed whenever the listing's claims or photos change (see edit action).
+  aiVerified      Boolean        @default(false)
+  aiVerdict       Json?
+  aiCheckedAt     DateTime?
   status          ListingStatus  @default(ACTIVE)
   sellerId        String
   seller          User           @relation(fields: [sellerId], references: [id])

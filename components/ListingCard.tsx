@@ -39,12 +39,17 @@ export function ListingCard({
           </div>
         )}
 
-        {listing.bootVerified && (
+        {listing.aiVerified ? (
+          <span className="absolute top-2 right-2 inline-flex items-center gap-1 bg-bg-elevated/90 border border-amber/50 text-amber text-[10px] font-mono uppercase tracking-wide px-2 py-1 rounded-(--radius-tag)">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber" />
+            AI-verified
+          </span>
+        ) : listing.bootVerified ? (
           <span className="absolute top-2 right-2 inline-flex items-center gap-1 bg-bg-elevated/90 border border-pass/40 text-pass text-[10px] font-mono uppercase tracking-wide px-2 py-1 rounded-(--radius-tag)">
             <span className="w-1.5 h-1.5 rounded-full bg-pass" />
             Verified
           </span>
-        )}
+        ) : null}
       </div>
 
       <div className="p-4 space-y-3 flex-1 min-w-0">

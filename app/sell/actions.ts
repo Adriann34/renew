@@ -3,7 +3,7 @@
 import { randomUUID } from "node:crypto";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import type { PhotoKind } from "@prisma/client";
+import { Prisma, type PhotoKind } from "@prisma/client";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { parseListingFields } from "@/lib/listingValidation";
@@ -13,6 +13,12 @@ import {
   MAX_PHOTOS_PER_LISTING,
   uploadPhoto,
 } from "@/lib/photoUpload";
+import {
+  isAiVerificationEnabled,
+  verifyListingClaims,
+  PHOTO_KIND_LABEL,
+  type AiImageInput,
+} from "@/lib/aiVerify";
 
 export type CreateListingState = { error: string | null };
 
@@ -63,6 +69,7 @@ export async function createListingAction(
 
   const listingId = randomUUID();
   const uploadTasks: Promise<{ kind: PhotoKind; url: string; path: string }>[] = [];
+  const aiImages: AiImageInput[] = [];
   let totalPhotoCount = 0;
 
   for (const { field, kind } of PHOTO_FIELDS) {
@@ -79,8 +86,28 @@ export async function createListingAction(
         return { error: `Each photo must be under ${MAX_PHOTO_BYTES / (1024 * 1024)}MB.` };
       }
       uploadTasks.push(uploadPhoto(supabase, listingId, kind, file));
+      aiImages.push({ label: PHOTO_KIND_LABEL[kind], buffer: Buffer.from(await file.arrayBuffer()) });
     }
   }
+
+  // Run AI photo-verification concurrently with the uploads. Best-effort: resolves
+  // to null (never throws) if the feature is off or the call fails, and never blocks publish.
+  const verifyPromise = isAiVerificationEnabled()
+    ? verifyListingClaims(
+        {
+          title,
+          category: categoryRaw,
+          grade: gradeRaw,
+          spec,
+          description,
+          benchmarkLabel,
+          benchmarkScore,
+          wattageDraw,
+          bootVerified,
+        },
+        aiImages
+      )
+    : Promise.resolve(null);
 
   const results = await Promise.allSettled(uploadTasks);
   const uploaded = results
@@ -94,6 +121,15 @@ export async function createListingAction(
     }
     return { error: "Failed to upload one or more photos. Please try again." };
   }
+
+  const aiResult = await verifyPromise;
+  const aiFields = aiResult
+    ? {
+        aiVerified: aiResult.status === "verified",
+        aiVerdict: aiResult as unknown as Prisma.InputJsonValue,
+        aiCheckedAt: new Date(),
+      }
+    : {};
 
   let listing;
   try {
@@ -121,6 +157,7 @@ export async function createListingAction(
         benchmarkLabel,
         wattageDraw,
         bootVerified,
+        ...aiFields,
         sellerId: user.id,
         photos: {
           create: uploaded.map(({ kind, url }) => ({ kind, url })),

@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
-import type { PhotoKind } from "@prisma/client";
+import { Prisma, type PhotoKind } from "@prisma/client";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 import { parseListingFields } from "@/lib/listingValidation";
@@ -13,6 +13,12 @@ import {
   storagePathFromUrl,
   uploadPhoto,
 } from "@/lib/photoUpload";
+import {
+  isAiVerificationEnabled,
+  verifyListingClaims,
+  PHOTO_KIND_LABEL,
+  type AiImageInput,
+} from "@/lib/aiVerify";
 
 export type DeleteListingState = { error: string } | void;
 
@@ -76,6 +82,36 @@ const PHOTO_FIELDS: { field: string; kind: PhotoKind }[] = [
   { field: "photos_benchmark", kind: "BENCHMARK" },
   { field: "photos_boot", kind: "BOOT" },
 ];
+
+// Collects the images to re-verify on edit: the newly-uploaded files (bytes from the
+// form) plus the photos being kept (fetched from their public URLs). Best-effort —
+// unreachable/seed photos are simply skipped.
+async function gatherEditAiImages(
+  formData: FormData,
+  remainingPhotos: { kind: PhotoKind; url: string }[]
+): Promise<AiImageInput[]> {
+  const images: AiImageInput[] = [];
+
+  for (const { field, kind } of PHOTO_FIELDS) {
+    const files = formData.getAll(field).filter((f): f is File => f instanceof File && f.size > 0);
+    for (const file of files) {
+      images.push({ label: PHOTO_KIND_LABEL[kind], buffer: Buffer.from(await file.arrayBuffer()) });
+    }
+  }
+
+  for (const photo of remainingPhotos) {
+    if (!/^https?:\/\//.test(photo.url)) continue; // skip seed/demo photos served from /public
+    try {
+      const res = await fetch(photo.url);
+      if (!res.ok) continue;
+      images.push({ label: PHOTO_KIND_LABEL[photo.kind], buffer: Buffer.from(await res.arrayBuffer()) });
+    } catch {
+      // Non-fatal: verify with whatever photos we could load.
+    }
+  }
+
+  return images;
+}
 
 export async function updateListingAction(
   _prevState: UpdateListingState,
@@ -163,6 +199,46 @@ export async function updateListingAction(
     .map((p) => storagePathFromUrl(p.url))
     .filter((p): p is string => Boolean(p));
 
+  // Re-run AI verification when a verification-relevant field or the photo set changed,
+  // so the stored verdict can never go stale against edited claims. If a re-check is due
+  // but can't produce a result, we CLEAR the verdict rather than leave a misleading one.
+  const claimsChanged =
+    grade !== listing.grade ||
+    benchmarkScore !== listing.benchmarkScore ||
+    benchmarkLabel !== listing.benchmarkLabel ||
+    wattageDraw !== listing.wattageDraw ||
+    bootVerified !== listing.bootVerified ||
+    description !== listing.description;
+  const photosChanged = uploaded.length > 0 || removedPhotoIds.length > 0;
+
+  let aiFields: Prisma.ListingUpdateInput = {};
+  if (isAiVerificationEnabled() && (claimsChanged || photosChanged)) {
+    // gatherEditAiImages reads the new uploads straight from the form, so here we
+    // pass only the KEPT pre-existing photos (fetched from their URLs) — no double-count.
+    const aiImages = await gatherEditAiImages(formData, remainingPhotos);
+    const aiResult = await verifyListingClaims(
+      {
+        title,
+        category: listing.category,
+        grade,
+        spec,
+        description,
+        benchmarkLabel,
+        benchmarkScore,
+        wattageDraw,
+        bootVerified,
+      },
+      aiImages
+    );
+    aiFields = aiResult
+      ? {
+          aiVerified: aiResult.status === "verified",
+          aiVerdict: aiResult as unknown as Prisma.InputJsonValue,
+          aiCheckedAt: new Date(),
+        }
+      : { aiVerified: false, aiVerdict: Prisma.DbNull, aiCheckedAt: null };
+  }
+
   try {
     await prisma.$transaction([
       ...(removedPhotoIds.length > 0
@@ -181,6 +257,7 @@ export async function updateListingAction(
           benchmarkLabel,
           wattageDraw,
           bootVerified,
+          ...aiFields,
           photos: { create: uploaded.map(({ kind, url }) => ({ kind, url })) },
         },
       }),

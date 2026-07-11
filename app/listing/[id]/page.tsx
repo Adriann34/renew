@@ -9,7 +9,9 @@ import { DeleteListingButton } from "@/components/listing/DeleteListingButton";
 import { MessageSellerButton } from "@/components/listing/MessageSellerButton";
 import { BuyNowButton } from "@/components/listing/BuyNowButton";
 import { ListingDescription } from "@/components/listing/ListingDescription";
+import { AiVerdictPanel } from "@/components/listing/AiVerdictPanel";
 import { getListingById } from "@/lib/listings";
+import { parseAiVerdict } from "@/lib/aiVerify";
 import { isListingSaved } from "@/lib/saved";
 import { createClient } from "@/lib/supabase/server";
 import { formatPrice } from "@/lib/format";
@@ -32,6 +34,8 @@ export default async function ListingPage({
   const { id } = await params;
   const listing = await getListingById(id);
   if (!listing) notFound();
+
+  const aiVerdict = parseAiVerdict(listing.aiVerdict);
 
   const groups: GalleryGroup[] = PHOTO_KIND_ORDER.map((kind) => ({
     kind,
@@ -105,6 +109,11 @@ export default async function ListingPage({
 
           <div className="flex items-center gap-3 mt-3 mb-6">
             <p className="font-mono text-amber text-2xl">{formatPrice(listing.price)}</p>
+            {aiVerdict?.status === "verified" && (
+              <span className="inline-flex items-center gap-1.5 border border-amber text-amber bg-amber/10 text-[11px] font-medium uppercase tracking-wide px-2.5 py-1 rounded-(--radius-tag)">
+                ✦ AI-verified
+              </span>
+            )}
             {listing.bootVerified && (
               <span className="inline-flex items-center gap-1.5 border border-pass text-pass bg-pass/10 text-[11px] font-medium uppercase tracking-wide px-2.5 py-1 rounded-(--radius-tag)">
                 ✓ Verified listing
@@ -141,6 +150,8 @@ export default async function ListingPage({
               {proofCount}/4 proofs attached
             </span>
           </div>
+
+          {aiVerdict && <AiVerdictPanel result={aiVerdict} />}
 
           <div className="flex items-center gap-3 py-4 border-t border-b border-line mb-6">
             <div className="w-10 h-10 shrink-0 overflow-hidden flex items-center justify-center rounded-(--radius-tag) bg-amber text-bg-inset font-mono font-semibold text-sm">
