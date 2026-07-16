@@ -19,8 +19,8 @@ export function Hero() {
             to prove it.
           </h1>
           <p className="text-ink-dim text-[15px] leading-relaxed max-w-md mb-8">
-            Every GPU, CPU, and PSU on Renew ships with a diagnostic
-            report — grade, benchmark score, and tested wattage — filled
+            Every hardware on Renew ships with a diagnostic
+            report. Grade, benchmark score, and tested wattage, filled
             in by the seller and backed by photo proof, so you know
             exactly what you&apos;re buying before it arrives.
           </p>
