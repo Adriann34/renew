@@ -9,9 +9,11 @@ next-env.d.ts
 # Editor / assistant tooling — not meant for the public repo
 .claude
 CLAUDE.md
+SECURITY.md
 .vscode
 .idea
 .history
 
 # Vercel
 .vercel
+
