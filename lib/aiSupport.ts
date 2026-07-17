@@ -17,7 +17,7 @@ export type { SupportMessage, SupportRole } from "@/lib/supportChat";
  * throws.
  */
 
-const GEMINI_MODEL = "gemini-3.5-flash";
+const GEMINI_MODEL = "gemini-3.1-flash-lite";
 const GEMINI_STREAM_ENDPOINT = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:streamGenerateContent`;
 const REQUEST_TIMEOUT_MS = 30_000;
 
