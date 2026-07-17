@@ -1,9 +1,12 @@
 import { prisma } from "@/lib/prisma";
+import { PUBLIC_USER_SELECT } from "@/lib/listings";
 
 export async function getSavedListings(userId: string) {
   const saved = await prisma.savedListing.findMany({
     where: { userId },
-    include: { listing: { include: { photos: true, seller: true } } },
+    include: {
+      listing: { include: { photos: true, seller: { select: PUBLIC_USER_SELECT } } },
+    },
     orderBy: { createdAt: "desc" },
   });
   return saved.map((s) => s.listing);

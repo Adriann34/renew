@@ -28,7 +28,7 @@ export default async function ConversationPage({
   if (!active) notFound();
 
   const other = active.buyerId === user.id ? active.seller : active.buyer;
-  const otherName = other.name ?? other.email;
+  const otherName = other.name ?? "Renew user";
   const thumbnailUrl =
     active.listing.photos.find((p) => p.kind === "CONDITION")?.url ??
     active.listing.photos[0]?.url ??

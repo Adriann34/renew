@@ -38,7 +38,7 @@ export function ConversationList({
     <div className="flex-1 overflow-y-auto">
       {conversations.map((conversation) => {
         const other = otherParticipant(conversation, currentUserId);
-        const label = other.name ?? other.email;
+        const label = other.name ?? "Renew user";
         const unread = hasUnread(conversation, currentUserId);
         const last = conversation.messages[0];
         const isActive = conversation.id === activeId;

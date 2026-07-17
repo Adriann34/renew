@@ -44,7 +44,7 @@ export default async function ListingPage({
   })).filter((group) => group.photos.length > 0);
 
   const proofCount = groups.length;
-  const sellerLabel = listing.seller.name ?? listing.seller.email;
+  const sellerLabel = listing.seller.name ?? "Seller";
   const initials = sellerLabel.slice(0, 2).toUpperCase();
 
   const supabase = await createClient();

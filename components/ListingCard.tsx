@@ -65,7 +65,7 @@ export function ListingCard({
         <ConditionBadge grade={listing.grade} />
 
         <div className="text-[11px] text-ink-dim pt-1 truncate">
-          {listing.seller.name ?? listing.seller.email} · {listing.location}
+          {listing.seller.name ?? "Seller"} · {listing.location}
         </div>
       </div>
     </Link>

@@ -1,13 +1,16 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { PUBLIC_USER_SELECT } from "@/lib/listings";
 
 // A conversation with everything the inbox list needs: the listing (+ its first
 // photo for a thumbnail), both participants, and the most recent message.
+// Participants are narrowed to PUBLIC_USER_SELECT — never leak buyer/seller
+// email or phone into the client-serialized conversation payload.
 export type ConversationSummary = Prisma.ConversationGetPayload<{
   include: {
     listing: { include: { photos: true } };
-    buyer: true;
-    seller: true;
+    buyer: { select: typeof PUBLIC_USER_SELECT };
+    seller: { select: typeof PUBLIC_USER_SELECT };
     messages: true;
   };
 }>;
@@ -16,9 +19,9 @@ export type ConversationSummary = Prisma.ConversationGetPayload<{
 export type ConversationWithMessages = Prisma.ConversationGetPayload<{
   include: {
     listing: { include: { photos: true } };
-    buyer: true;
-    seller: true;
-    messages: { include: { sender: true } };
+    buyer: { select: typeof PUBLIC_USER_SELECT };
+    seller: { select: typeof PUBLIC_USER_SELECT };
+    messages: { include: { sender: { select: typeof PUBLIC_USER_SELECT } } };
   };
 }>;
 
@@ -48,8 +51,8 @@ export async function getConversationsForUser(userId: string): Promise<Conversat
     where: { OR: [{ buyerId: userId }, { sellerId: userId }] },
     include: {
       listing: { include: { photos: true } },
-      buyer: true,
-      seller: true,
+      buyer: { select: PUBLIC_USER_SELECT },
+      seller: { select: PUBLIC_USER_SELECT },
       // Just the last message, for the list snippet + unread check.
       messages: { orderBy: { createdAt: "desc" }, take: 1 },
     },
@@ -72,9 +75,12 @@ export async function getConversationById(
     where: { id },
     include: {
       listing: { include: { photos: true } },
-      buyer: true,
-      seller: true,
-      messages: { include: { sender: true }, orderBy: { createdAt: "asc" } },
+      buyer: { select: PUBLIC_USER_SELECT },
+      seller: { select: PUBLIC_USER_SELECT },
+      messages: {
+        include: { sender: { select: PUBLIC_USER_SELECT } },
+        orderBy: { createdAt: "asc" },
+      },
     },
   });
   if (!conversation) return null;
