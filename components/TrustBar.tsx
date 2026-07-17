@@ -7,7 +7,7 @@ const items = [
   {
     n: "02",
     title: "Grading you can trust",
-    body: "A/B/C grades map to hours logged and condition, cross-checked against the seller's own proof photos. No inflated 'like new'.",
+    body: "Grades map to hours logged and condition, cross-checked against the seller's own proof photos. No inflated 'like new'.",
   },
   {
     n: "03",
