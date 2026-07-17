@@ -19,6 +19,7 @@ import {
   PHOTO_KIND_LABEL,
   type AiImageInput,
 } from "@/lib/aiVerify";
+import { enforceAiBudget, enforceUploadBudget, clientIp } from "@/lib/rateLimit";
 
 export type DeleteListingState = { error: string } | void;
 
@@ -135,6 +136,11 @@ export async function updateListingAction(
     return { error: "You can only edit your own listings." };
   }
 
+  // Throttle uploads/sharp CPU per user (fails closed on DB error).
+  if (await enforceUploadBudget(user.id)) {
+    return { error: "You're editing listings too quickly. Please wait a bit and try again." };
+  }
+
   const parsed = parseListingFields(formData);
   if ("error" in parsed) return { error: parsed.error };
   const {
@@ -213,23 +219,28 @@ export async function updateListingAction(
 
   let aiFields: Prisma.ListingUpdateInput = {};
   if (isAiVerificationEnabled() && (claimsChanged || photosChanged)) {
+    // A re-check is due. Skip the model call when we're over the AI budget (cost
+    // control), but still CLEAR the old verdict below — a stale "verified" must
+    // never survive edited claims, and being over budget is not a pass.
+    const underBudget = !(await enforceAiBudget(user.id, await clientIp()));
     // gatherEditAiImages reads the new uploads straight from the form, so here we
     // pass only the KEPT pre-existing photos (fetched from their URLs) — no double-count.
-    const aiImages = await gatherEditAiImages(formData, remainingPhotos);
-    const aiResult = await verifyListingClaims(
-      {
-        title,
-        category: listing.category,
-        grade,
-        spec,
-        description,
-        benchmarkLabel,
-        benchmarkScore,
-        wattageDraw,
-        bootVerified,
-      },
-      aiImages
-    );
+    const aiResult = underBudget
+      ? await verifyListingClaims(
+          {
+            title,
+            category: listing.category,
+            grade,
+            spec,
+            description,
+            benchmarkLabel,
+            benchmarkScore,
+            wattageDraw,
+            bootVerified,
+          },
+          await gatherEditAiImages(formData, remainingPhotos)
+        )
+      : null;
     aiFields = aiResult
       ? {
           aiVerified: aiResult.verified,

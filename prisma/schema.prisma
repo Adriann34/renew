@@ -127,6 +127,23 @@ model Conversation {
   @@index([sellerId])
 }
 
+// Fixed-window rate-limit + usage-cap counters. One row per (key, windowStart):
+// `key` identifies the bucket ("ai:user:<id>", "ai:ip:<ip>", "ai:global",
+// "upload:user:<id>"), `windowStart` is the floored start of the current window,
+// and `count` is atomically incremented via upsert. Rows for elapsed windows are
+// dead and can be reaped (see @@index) — nothing reads them once the window rolls.
+// This is the ONLY cost/abuse control in the app: without it a single free signup
+// could spam Gemini + sharp without limit. Cheap paths fail open, AI paths fail
+// closed (see lib/rateLimit.ts).
+model RateLimit {
+  key         String
+  windowStart DateTime
+  count       Int      @default(0)
+
+  @@id([key, windowStart])
+  @@index([windowStart])
+}
+
 model Message {
   id             String       @id @default(uuid())
   conversationId String

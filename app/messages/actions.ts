@@ -9,6 +9,7 @@ import {
   MAX_CHAT_UPLOAD_BYTES,
 } from "@/lib/chatUpload";
 import { ALLOWED_PHOTO_TYPES } from "@/lib/photoUpload";
+import { enforceUploadBudget } from "@/lib/rateLimit";
 
 const MAX_MESSAGE_LEN = 4000;
 
@@ -91,6 +92,11 @@ export async function sendMessageAction(
 
   let attachmentUrl: string | null = null;
   if (hasAttachment) {
+    // Throttle attachment uploads/sharp CPU per user (fails closed on DB error).
+    // Text-only messages aren't gated here — they're cheap DB writes.
+    if (await enforceUploadBudget(user.id)) {
+      return { error: "You're sending attachments too quickly. Please wait a moment." };
+    }
     if (!ALLOWED_PHOTO_TYPES.has(file.type)) {
       return { error: "Attachment must be a JPEG, PNG, WebP, or HEIC image." };
     }

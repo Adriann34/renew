@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { City, Country } from "country-state-city";
+import { rateLimit, clientIpFromHeaders, LIMITS, MINUTE } from "@/lib/rateLimit";
 
 let cityLabelsCache: string[] | null = null;
 
@@ -18,6 +19,18 @@ function getCityLabels(): string[] {
 }
 
 export async function GET(request: Request) {
+  // This is the only public (no-auth) endpoint. It's cheap (in-memory filter, no
+  // DB/AI), so we fail OPEN on limiter errors — a DB blip shouldn't break the
+  // location field — but still cap per-IP to blunt outright flooding.
+  const ip = clientIpFromHeaders(request.headers);
+  const limit = await rateLimit(`cities:ip:${ip}`, LIMITS.citiesIpPerMinute, MINUTE);
+  if (!limit.allowed) {
+    return NextResponse.json(
+      { results: [] },
+      { status: 429, headers: { "Retry-After": String(limit.retryAfterSec) } }
+    );
+  }
+
   const { searchParams } = new URL(request.url);
   const q = searchParams.get("q")?.trim().toLowerCase() ?? "";
 

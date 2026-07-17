@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { isSupportChatEnabled, streamSupportAnswer } from "@/lib/aiSupport";
+import { enforceAiBudget, clientIpFromHeaders } from "@/lib/rateLimit";
 import {
   MAX_SUPPORT_HISTORY,
   MAX_SUPPORT_MESSAGE_CHARS,
@@ -27,6 +28,16 @@ export async function POST(req: NextRequest): Promise<Response> {
 
   if (!isSupportChatEnabled()) {
     return new Response("Support chat is unavailable right now.", { status: 503 });
+  }
+
+  // Cost/abuse control: cap AI calls per-user, per-IP, and globally (daily kill
+  // switch). Fails closed — a signed-in account is not a licence to spam Gemini.
+  const budget = await enforceAiBudget(user.id, clientIpFromHeaders(req.headers));
+  if (budget) {
+    return new Response("You're sending messages too fast. Please try again shortly.", {
+      status: 429,
+      headers: { "Retry-After": String(budget.retryAfterSec) },
+    });
   }
 
   let body: unknown;

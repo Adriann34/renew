@@ -21,6 +21,13 @@ import {
   type AiImageInput,
   type AutofillResult,
 } from "@/lib/aiVerify";
+import {
+  enforceAiBudget,
+  enforceUploadBudget,
+  enforceListingCreateBudget,
+  clientIp,
+  LIMITS,
+} from "@/lib/rateLimit";
 
 export type CreateListingState = { error: string | null };
 
@@ -42,6 +49,18 @@ export async function createListingAction(
 
   if (!user) {
     return { error: "You must be signed in to create a listing." };
+  }
+
+  // Two-layer anti-flood: an hourly upload/sharp throttle (blunts bursts) AND a
+  // daily cap on total new listings (bounds DB growth — one account can't create
+  // thousands of rows). Both fail closed on DB error.
+  if (await enforceUploadBudget(user.id)) {
+    return { error: "You're creating listings too quickly. Please wait a bit and try again." };
+  }
+  if (await enforceListingCreateBudget(user.id)) {
+    return {
+      error: `You've reached the daily limit for new listings (${LIMITS.listingCreatePerDay}). Please try again tomorrow.`,
+    };
   }
 
   const parsed = parseListingFields(formData);
@@ -94,7 +113,14 @@ export async function createListingAction(
 
   // Run AI photo-verification concurrently with the uploads. Best-effort: resolves
   // to null (never throws) if the feature is off or the call fails, and never blocks publish.
-  const verifyPromise = isAiVerificationEnabled()
+  // Gated by the AI budget — over the per-user/global cap we skip verification and
+  // publish the listing unverified rather than blocking the seller (fail closed = the
+  // AI feature stops, the core action still works).
+  let aiEnabled = isAiVerificationEnabled();
+  if (aiEnabled && (await enforceAiBudget(user.id, await clientIp()))) {
+    aiEnabled = false;
+  }
+  const verifyPromise = aiEnabled
     ? verifyListingClaims(
         {
           title,
@@ -192,6 +218,9 @@ export async function autofillDiagnosticsAction(formData: FormData): Promise<Aut
   } = await supabase.auth.getUser();
   if (!user) return { error: "You must be signed in." };
   if (!isAiVerificationEnabled()) return { error: "AI autofill isn't available right now." };
+  if (await enforceAiBudget(user.id, await clientIp())) {
+    return { error: "AI autofill is busy right now — please fill the report in manually." };
+  }
 
   const aiImages: AiImageInput[] = [];
   for (const { field, kind } of PHOTO_FIELDS) {
