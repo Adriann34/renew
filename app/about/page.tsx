@@ -1,3 +1,5 @@
+import { BackButton } from "@/components/BackButton";
+
 const sections = [
   {
     id: "about",
@@ -18,7 +20,8 @@ const sections = [
 
 export default function AboutPage() {
   return (
-    <div className="max-w-3xl mx-auto px-6 py-20">
+    <div className="relative max-w-3xl mx-auto px-6 pt-14 pb-20">
+      <BackButton />
       <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-amber mb-4">
         Company
       </p>
