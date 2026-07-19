@@ -5,8 +5,8 @@ const sections = [
     id: "about",
     title: "About",
     body: [
-      "Renew is a marketplace for buying and selling used PC hardware — GPUs, CPUs, and everything around them. Instead of relying on stock photos or seller claims, every listing carries a diagnostic report — condition grade, benchmark score, and tested power draw — filled in by the seller and backed by photo proof.",
-      "The goal is simple — make it possible to trust a used part before it ships, based on data instead of guesswork.",
+      "Renew is a marketplace for buying and selling used PC hardware like GPUs, CPUs, and everything around them. Instead of relying on stock photos or seller claims, every listing carries a diagnostic report with a condition grade, benchmark score, and tested power draw, filled in by the seller and backed by photo proof.",
+      "The goal is simple: make it possible to trust a used part before it ships, based on data instead of guesswork.",
     ],
   },
   {

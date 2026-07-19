@@ -17,8 +17,8 @@ const items = [
   },
   {
     n: "04",
-    title: "7-day return window",
-    body: "Check the item yourself. If it doesn't match the report or photos, send it back for a full refund.",
+    title: "Direct messaging",
+    body: "Contact sellers directly to ask questions, request additional photos, or clarify details before you buy.",
   },
 ];
 

@@ -25,24 +25,24 @@ export const faqSections: FaqSection[] = [
     id: "how-grading-works",
     title: "How grading works",
     body: [
-      "Every listing on Renew includes a diagnostic report filled in by the seller — condition grade, benchmark score, and tested power draw — plus photos backing up those numbers.",
-      "Grades (A/B/C) map to hours logged, wear, and boot stability, and every listing shows the seller's benchmark score and tested power draw alongside the grade and proof photos — so you're buying off data and evidence, not just a description.",
+      "Every listing on Renew includes a diagnostic report filled in by the seller which includes condition grade, benchmark score, and tested power draw, plus photos backing up those numbers.",
+      "Grades map to hours logged, wear, and boot stability, and every listing shows the seller's benchmark score and tested power draw alongside the grade and proof photos, so you're buying off data and evidence, not just a description.",
     ],
   },
   {
     id: "buyer-protection",
     title: "Buyer protection",
     body: [
-      "Every order goes through escrow. Payment is held until you confirm the item you received matches its diagnostic report and photos.",
-      "If it doesn't match, you can open a dispute before funds release to the seller, and Renew will step in to resolve it.",
+      "Renew connects buyers and sellers through verified listings backed by diagnostic reports and supporting evidence.",
+      "While transactions happen directly between buyers and sellers, we help you make informed decisions with transparent information.",
     ],
   },
   {
     id: "return-policy",
     title: "Return policy",
     body: [
-      "Every purchase comes with a 7-day return window. Check the item yourself against the diagnostic report and photos on the listing.",
-      "If it doesn't match — grade, benchmark score, power draw, or what's shown in the photos — send it back for a full refund.",
+      "Return policies are set by individual sellers and are shown on each listing.",
+      "Review the listing details and included diagnostic report before completing your purchase.",
     ],
   },
 ];
