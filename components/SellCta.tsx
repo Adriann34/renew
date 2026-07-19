@@ -4,12 +4,12 @@ const STEPS = [
   {
     n: 1,
     title: "Pick a category",
-    desc: "The diagnostic report is tailored to the part — you're never asked for numbers that don't apply.",
+    desc: "Choose the right category for your item.",
   },
   {
     n: 2,
-    title: "Fill the diagnostic report",
-    desc: "Grade, benchmark score, and tested wattage — whichever fields apply to what you're selling.",
+    title: "Fill in the specs",
+    desc: "Grade, benchmark score, and tested wattage, whichever fields apply to what you're selling.",
   },
   {
     n: 3,
@@ -27,15 +27,16 @@ export function SellCta() {
             For sellers
           </p>
           <h2 className="font-display font-semibold text-3xl md:text-4xl mb-5 leading-tight">
-            Old rig sitting in a closet?
+            Old items collecting dust?
             <br />
-            List it with proof, not promises.
+            Turn it into cash with Renew!
           </h2>
           <p className="text-ink-dim text-[15px] leading-relaxed max-w-md mb-8">
-            Fill in your diagnostic report — grade, benchmark score, and
-            tested wattage — when you list, then back it up with photos
-            (burn-in test, benchmark screen, physical condition).
-            Proof-backed listings sell faster and for better prices.
+            Fill in the listing with the correct specifications,
+            <br /> 
+            Upload trustworthy photos to get your listing verified.
+            <br />
+            Verified listings sell faster and for better prices!
           </p>
           <Link
             href="/sell"

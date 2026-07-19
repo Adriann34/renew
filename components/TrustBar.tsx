@@ -12,8 +12,8 @@ const items = [
   },
   {
     n: "03",
-    title: "Escrow on every order",
-    body: "Payment releases to the seller only after you confirm the item matches its diagnostic report and photos.",
+    title: "Verify your listings",
+    body: "Attach trustworthy photos and get the verified badge!",
   },
   {
     n: "04",
