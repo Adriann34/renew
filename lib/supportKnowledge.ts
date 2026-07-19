@@ -39,19 +39,20 @@ export const faqSections: FaqSection[] = [
   },
   {
     id: "return-policy",
-    title: "Return policy",
+    title: "Returns",
     body: [
-      "Return policies are set by individual sellers and are shown on each listing.",
-      "Review the listing details and included diagnostic report before completing your purchase.",
+      "Renew doesn't handle checkout yet, so returns aren't processed on the site. Purchases are arranged directly between buyer and seller, so agree on returns with the seller in chat before you pay.",
+      "Before buying, review the diagnostic report, the proof photos, and the listing's verification result, and message the seller about anything that isn't clear.",
     ],
   },
 ];
 
 /**
- * Where the bot points people when it can't help itself. Replace with a real
- * inbox before launch — it's referenced in the bot's escalation instructions.
+ * Where the bot points people when it can't help itself. Referenced in the bot's
+ * escalation instructions, and must stay in sync with the contact address shown
+ * on the about page (app/about/page.tsx).
  */
-export const SUPPORT_EMAIL = "support@renew.example";
+export const SUPPORT_EMAIL = "adriantanbusiness34@gmail.com";
 
 type KnowledgeTopic = {
   topic: string;
@@ -78,6 +79,16 @@ export const supportPolicies: KnowledgeTopic[] = [
     facts: [
       "When a seller creates a listing they fill in a diagnostic report and upload proof photos (a condition photo, a benchmark screenshot, a burn-in / power-draw screenshot, and a boot/POST screen).",
       "An AI check reads those proof photos and cross-checks them against the seller's stated numbers, so buyers can see whether the evidence actually supports the claims. This is about verifying photos against claims — it is not a guarantee, and buyers should still review the report and photos themselves.",
+    ],
+  },
+  {
+    topic: "The Verified badge",
+    facts: [
+      "A listing shows a 'Verified' badge when the AI photo check finds that the seller's proof photos support the numbers they entered. It is awarded automatically by that check — sellers can't request it and it isn't reviewed by a person.",
+      "The listing page shows the full verdict, which is one of: verified against photos, partially verified, not enough photo evidence, or photos contradict the report. It also breaks down which individual claims matched, didn't match, or weren't visible in the photos.",
+      "To get a listing verified, a seller should upload clear, legible proof photos where the on-screen numbers (benchmark score, power draw, boot/POST screen) actually match what they typed into the diagnostic report. Blurry, cropped, or missing photos are why a listing ends up unverified.",
+      "Buyers can narrow the Browse page to verified listings only using the 'Verified only' filter.",
+      "The badge means the photos back up the seller's claims — it is not a guarantee about the item's condition, the seller, or the transaction, so buyers should still read the report and photos themselves.",
     ],
   },
   {
