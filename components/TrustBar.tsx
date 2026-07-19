@@ -1,13 +1,14 @@
 const items = [
   {
     n: "01",
-    title: "Diagnostic report on every listing",
-    body: "Sellers fill in condition grade, benchmark score, and tested wattage — then back it up with photos in the listing.",
+    title: "Diagnostic Report",
+    body: "Sellers fill in the specs, Renew will do the rest.",
+    
   },
   {
     n: "02",
     title: "Grading you can trust",
-    body: "Grades map to hours logged and condition, cross-checked against the seller's own proof photos. No inflated 'like new'.",
+    body: "Renew checks if the item really is in its claimed condition through our verification system.",
   },
   {
     n: "03",

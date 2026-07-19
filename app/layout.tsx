@@ -21,9 +21,9 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Renew — Used GPUs & PC Hardware, With Diagnostic Reports",
+  title: "Renew | Used Hardware with Proof",
   description:
-    "Buy and sell used GPUs, CPUs, and PC hardware with a diagnostic report and photo proof on every listing.",
+    "Buy and sell with the confidence you need.",
   icons: {
     // BMP-encoded .ico (16/32/48) — Safari can't decode SVG favicons or
     // PNG-compressed .ico frames, so this is the one file every browser reads.

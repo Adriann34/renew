@@ -9,20 +9,18 @@ export function Hero() {
       <div className="max-w-7xl mx-auto px-6 py-20 grid lg:grid-cols-2 gap-16 items-center">
         <div>
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-amber mb-5">
-            Verified listings · every one with a diagnostic report
+            Trust through Evidence
           </p>
           <h1 className="font-display font-semibold text-[44px] md:text-[54px] leading-[1.05] mb-6">
-            Used hardware,
+            Marketplace
             <br />
-            with the numbers
+            you can
             <br />
-            to prove it.
+            actually trust.
           </h1>
           <p className="text-ink-dim text-[15px] leading-relaxed max-w-md mb-8">
-            Every hardware on Renew ships with a diagnostic
-            report. Grade, benchmark score, and tested wattage, filled
-            in by the seller and backed by photo proof, so you know
-            exactly what you&apos;re buying before it arrives.
+            Worried about buying used? Renew is the marketplace for you.
+            Buy with confidence using verified listings and the proof you need.
           </p>
           <div className="flex flex-wrap gap-3">
             <Link
