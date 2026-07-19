@@ -167,9 +167,13 @@ export default async function ListingPage({
             </span>
           </div>
 
-          {aiVerdict && <AiVerdictPanel result={aiVerdict} />}
+          {!isOwner && (
+            <div className="mb-6">
+              <BuyNowButton listingId={listing.id} />
+            </div>
+          )}
 
-          {!isOwner && <BuyNowButton listingId={listing.id} />}
+          {aiVerdict && <AiVerdictPanel result={aiVerdict} />}
         </div>
       </div>
 

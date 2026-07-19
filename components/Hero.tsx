@@ -7,7 +7,9 @@ export function Hero() {
   return (
     <section className="border-b border-line">
       <div className="max-w-7xl mx-auto px-6 py-20 grid lg:grid-cols-2 gap-16 items-center">
-        <div>
+        {/* nudged up slightly — optically the heading's line-height makes a
+            true center read top-heavy against the card */}
+        <div className="lg:relative lg:-top-4">
           <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-amber mb-5">
             Trust through Evidence
           </p>
