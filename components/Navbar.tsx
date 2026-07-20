@@ -44,13 +44,15 @@ export async function Navbar() {
                     ? `Messages, ${unreadCount} unread conversation${unreadCount === 1 ? "" : "s"}`
                     : "Messages"
                 }
-                className="hidden sm:block relative text-[13px] text-ink-dim hover:text-ink transition-colors"
+                className="hidden sm:inline-flex items-center gap-2 text-[13px] text-ink-dim hover:text-ink transition-colors"
               >
                 Messages
                 {unreadCount > 0 && (
                   <span
                     aria-hidden
-                    className="absolute -top-1 -right-2.5 min-w-4 h-4 px-1 flex items-center justify-center rounded-full bg-amber text-bg-inset font-mono text-[10px] leading-none tabular-nums"
+                    // min-width + padding, not a fixed width: "1" stays a circle,
+                    // "12" grows into a pill instead of overflowing.
+                    className="min-w-4.5 h-4.5 px-1.5 inline-flex items-center justify-center rounded-full bg-amber/15 text-amber font-mono text-[11px] leading-none tabular-nums"
                   >
                     {unreadCount > 9 ? "9+" : unreadCount}
                   </span>
