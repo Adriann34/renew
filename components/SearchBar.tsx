@@ -35,7 +35,7 @@ export function SearchBar() {
         type="search"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        placeholder="Search RTX 4080, Ryzen 9, DDR5..."
+        placeholder="Search Renew"
         aria-label="Search listings"
         className="flex-1 bg-transparent px-2 text-[13px] text-ink placeholder:text-ink-dim outline-none [&::-webkit-search-cancel-button]:appearance-none"
       />

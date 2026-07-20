@@ -173,8 +173,6 @@ export function BrowseView({
       <div className="max-w-7xl mx-auto px-6 pt-10">
         <h1 className="font-display font-semibold text-3xl md:text-4xl mb-2">Browse listings</h1>
         <p className="text-ink-dim text-[15px] max-w-xl mb-6">
-          Filter by category, grade, and the numbers sellers actually tested — draw under load,
-          benchmark score, boot status — before you talk to anyone.
         </p>
         <div className="flex items-center border border-line bg-bg-inset px-3 h-11 max-w-md mb-8 focus-within:border-ink-dim transition-colors">
           <span className="text-ink-dim text-sm font-mono">⌕</span>
@@ -182,7 +180,7 @@ export function BrowseView({
             type="search"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by name or spec — RTX 4080, Ryzen 9, DDR5..."
+            placeholder="Search Renew"
             aria-label="Search listings"
             className="flex-1 bg-transparent px-2.5 text-[14px] text-ink placeholder:text-ink-dim outline-none [&::-webkit-search-cancel-button]:appearance-none"
           />

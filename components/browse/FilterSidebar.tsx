@@ -89,7 +89,7 @@ export function FilterSidebar({
               />
               <span className={`w-2 h-2 rounded-sm shrink-0 ${gradeDot[g]}`} />
               <span>
-                {g} — {gradeLabel[g]}
+                {g} - {gradeLabel[g]}
               </span>
               <span className="ml-auto font-mono text-[11.5px] text-ink-dim">
                 {gradeCounts[g] ?? 0}
