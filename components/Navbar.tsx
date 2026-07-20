@@ -3,12 +3,19 @@ import { ThemeToggle } from "@/components/ThemeToggle";
 import { SearchBar } from "@/components/SearchBar";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { createClient } from "@/lib/supabase/server";
+import { getUnreadConversationCount } from "@/lib/conversations";
 
 export async function Navbar() {
   const supabase = await createClient();
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
+  // The navbar renders on every page — a DB hiccup here shouldn't take the whole
+  // app down, so an unread-count failure just means no badge.
+  const unreadCount = user
+    ? await getUnreadConversationCount(user.id).catch(() => 0)
+    : 0;
 
   return (
     <header className="sticky top-0 z-50 border-b border-line bg-bg/90 backdrop-blur">
@@ -32,9 +39,22 @@ export async function Navbar() {
             <>
               <Link
                 href="/messages"
-                className="hidden sm:block text-[13px] text-ink-dim hover:text-ink transition-colors"
+                aria-label={
+                  unreadCount > 0
+                    ? `Messages, ${unreadCount} unread conversation${unreadCount === 1 ? "" : "s"}`
+                    : "Messages"
+                }
+                className="hidden sm:block relative text-[13px] text-ink-dim hover:text-ink transition-colors"
               >
                 Messages
+                {unreadCount > 0 && (
+                  <span
+                    aria-hidden
+                    className="absolute -top-1 -right-2.5 min-w-4 h-4 px-1 flex items-center justify-center rounded-full bg-amber text-bg-inset font-mono text-[10px] leading-none tabular-nums"
+                  >
+                    {unreadCount > 9 ? "9+" : unreadCount}
+                  </span>
+                )}
               </Link>
               <Link
                 href="/account"

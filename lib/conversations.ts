@@ -88,6 +88,34 @@ export async function getConversationById(
   return conversation;
 }
 
+/**
+ * How many of the user's conversations have unread messages (the navbar badge count).
+ * Deliberately leaner than getConversationsForUser — only the read markers and each
+ * thread's last message, no listings/photos/participants.
+ */
+export async function getUnreadConversationCount(userId: string): Promise<number> {
+  const conversations = await prisma.conversation.findMany({
+    where: { OR: [{ buyerId: userId }, { sellerId: userId }] },
+    select: {
+      buyerId: true,
+      buyerLastReadAt: true,
+      sellerLastReadAt: true,
+      messages: {
+        orderBy: { createdAt: "desc" },
+        take: 1,
+        select: { senderId: true, createdAt: true },
+      },
+    },
+  });
+
+  return conversations.filter((c) => {
+    const last = c.messages[0];
+    if (!last || last.senderId === userId) return false;
+    const lastRead = c.buyerId === userId ? c.buyerLastReadAt : c.sellerLastReadAt;
+    return !lastRead || last.createdAt > lastRead;
+  }).length;
+}
+
 /** True if `userId` has unread messages in this conversation (last message is from the
  * other person and newer than the user's own read marker). */
 export function hasUnread(conversation: ConversationSummary, userId: string): boolean {

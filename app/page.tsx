@@ -24,7 +24,7 @@ export default async function Home() {
               Just tested
             </p>
             <h2 className="font-display font-semibold text-2xl">
-              Recently verified listings
+              Recently published listings
             </h2>
           </div>
           <Link href="/browse" className="text-[13px] text-ink-dim hover:text-ink">
