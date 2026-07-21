@@ -86,18 +86,35 @@ export function SettingsPanel({
             </div>
             <div>
               <label htmlFor="preferredCurrency" className={labelClass}>Display currency</label>
-              <select
-                id="preferredCurrency"
-                value={displayCurrency}
-                onChange={(e) => setDisplayCurrency(e.target.value)}
-                className={inputClass}
-              >
-                {CURRENCIES.map((c) => (
-                  <option key={c.code} value={c.code}>
-                    {c.code} — {c.name}
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                {/* form="__none__" points at no form, so despite living inside the
+                    profile <form> this control has no form owner — it isn't submitted
+                    or reset by "Save changes". It's a live preference driven entirely
+                    by the CurrencyProvider (applies instantly). */}
+                <select
+                  id="preferredCurrency"
+                  form="__none__"
+                  value={displayCurrency}
+                  onChange={(e) => setDisplayCurrency(e.target.value)}
+                  className={`${inputClass} appearance-none pr-10 cursor-pointer`}
+                >
+                  {CURRENCIES.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.code} — {c.name}
+                    </option>
+                  ))}
+                </select>
+                <svg
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-3 h-3 pointer-events-none text-ink-dim"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  aria-hidden
+                >
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </div>
               <p className="text-[11.5px] text-ink-dim mt-1">
                 Applies instantly across the site. Sellers always set their own.
               </p>
