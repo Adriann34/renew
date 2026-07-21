@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { GpuMark } from "@/components/icons/GpuMark";
 import { ConditionBadge } from "@/components/ConditionBadge";
 import { toggleSaveAction } from "@/app/listing/actions";
-import { formatPrice } from "@/lib/format";
+import { Price } from "@/components/Price";
 import type { ListingWithRelations } from "@/lib/listings";
 
 export function SavedListingCard({ listing }: { listing: ListingWithRelations }) {
@@ -60,9 +60,12 @@ export function SavedListingCard({ listing }: { listing: ListingWithRelations })
               {listing.title}
             </Link>
           </div>
-          <p className="font-mono text-amber text-[15px] whitespace-nowrap">
-            {formatPrice(listing.price)}
-          </p>
+          <Price
+            amount={listing.price}
+            currency={listing.currency}
+            align="right"
+            className="text-[15px] whitespace-nowrap"
+          />
         </div>
 
         <ConditionBadge grade={listing.grade} />

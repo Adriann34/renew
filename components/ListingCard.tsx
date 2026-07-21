@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { GpuMark } from "@/components/icons/GpuMark";
 import { ConditionBadge } from "@/components/ConditionBadge";
-import { formatPrice } from "@/lib/format";
+import { Price } from "@/components/Price";
 import type { ListingWithRelations } from "@/lib/listings";
 
 export function ListingCard({
@@ -57,9 +57,12 @@ export function ListingCard({
               {listing.title}
             </h3>
           </div>
-          <p className="font-mono text-amber text-[15px] whitespace-nowrap">
-            {formatPrice(listing.price)}
-          </p>
+          <Price
+            amount={listing.price}
+            currency={listing.currency}
+            align="right"
+            className="text-[15px] whitespace-nowrap"
+          />
         </div>
 
         <ConditionBadge grade={listing.grade} />

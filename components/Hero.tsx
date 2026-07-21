@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { DiagnosticTag } from "@/components/DiagnosticTag";
-import { formatPrice } from "@/lib/format";
+import { formatMoney } from "@/lib/format";
 
 export function Hero() {
   return (
@@ -65,7 +65,7 @@ export function Hero() {
                   RTX 4090 Founders Edition
                 </h3>
               </div>
-              <p className="font-mono text-amber text-lg">{formatPrice(1450)}</p>
+              <p className="font-mono text-amber text-lg">{formatMoney(1450, "USD")}</p>
             </div>
             <DiagnosticTag
               grade="A"

@@ -64,6 +64,7 @@ export default async function ConversationPage({
                 id: active.listing.id,
                 title: active.listing.title,
                 price: active.listing.price,
+                currency: active.listing.currency,
                 category: active.listing.category,
                 spec: active.listing.spec,
               }}
@@ -73,6 +74,7 @@ export default async function ConversationPage({
               listingId={active.listing.id}
               title={active.listing.title}
               price={active.listing.price}
+              currency={active.listing.currency}
               category={active.listing.category}
               spec={active.listing.spec}
               thumbnailUrl={thumbnailUrl}

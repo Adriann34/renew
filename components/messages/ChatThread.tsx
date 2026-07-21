@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { sendMessageAction, markReadAction } from "@/app/messages/actions";
-import { formatPrice } from "@/lib/format";
+import { Price } from "@/components/Price";
 import { formatMessageTime, formatDayDivider, initialsFrom } from "@/lib/chatFormat";
 import { MessageComposer } from "./MessageComposer";
 
@@ -21,6 +21,7 @@ type ListingContext = {
   id: string;
   title: string;
   price: number;
+  currency: string;
   category: string;
   spec: string;
 };
@@ -193,8 +194,8 @@ export function ChatThread({
             {listing.category} · {listing.spec}
           </p>
         </div>
-        <span className="font-mono font-bold text-amber text-[14px] shrink-0">
-          {formatPrice(listing.price)}
+        <span className="shrink-0">
+          <Price amount={listing.price} currency={listing.currency} align="right" className="font-bold text-[14px]" />
         </span>
         <span className="text-[12.5px] font-medium text-amber shrink-0">View</span>
       </Link>

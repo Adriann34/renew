@@ -3,7 +3,7 @@ import { GpuMark } from "@/components/icons/GpuMark";
 import { ConditionBadge } from "@/components/ConditionBadge";
 import { DeleteListingButton } from "@/components/listing/DeleteListingButton";
 import { MarkSoldButton } from "@/components/account/MarkSoldButton";
-import { formatPrice } from "@/lib/format";
+import { Price } from "@/components/Price";
 import type { ListingWithSaveCount } from "@/lib/listings";
 
 export function ManageListingCard({ listing }: { listing: ListingWithSaveCount }) {
@@ -53,9 +53,12 @@ export function ManageListingCard({ listing }: { listing: ListingWithSaveCount }
               {listing.title}
             </Link>
           </div>
-          <p className="font-mono text-amber text-[15px] whitespace-nowrap">
-            {formatPrice(listing.price)}
-          </p>
+          <Price
+            amount={listing.price}
+            currency={listing.currency}
+            align="right"
+            className="text-[15px] whitespace-nowrap"
+          />
         </div>
 
         <ConditionBadge grade={listing.grade} />

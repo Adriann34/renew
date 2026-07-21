@@ -2,14 +2,19 @@
 
 import type { Grade } from "@prisma/client";
 import { gradeLabel, gradeDot } from "@/lib/grade";
+import { useCurrency } from "@/components/CurrencyProvider";
+import { convert } from "@/lib/exchangeRates";
+import { formatMoney } from "@/lib/format";
 
 const GRADES: Grade[] = ["A", "B", "C"];
 
-const PRICE_CHIPS = [
-  { label: "Under $150", min: 0, max: 150 },
-  { label: "$150–500", min: 150, max: 500 },
-  { label: "$500–1,500", min: 500, max: 1500 },
-  { label: "$1,500+", min: 1500, max: Infinity },
+// Canonical price buckets in USD. They're converted into the viewer's display
+// currency below so the chip bounds line up with how prices are shown/filtered.
+const BASE_PRICE_CHIPS = [
+  { min: 0, max: 150 },
+  { min: 150, max: 500 },
+  { min: 500, max: 1500 },
+  { min: 1500, max: Infinity },
 ];
 
 const MIN_WATT = 50;
@@ -57,6 +62,24 @@ export function FilterSidebar({
   onToggleVerified: () => void;
   onClearAll: () => void;
 }) {
+  const { displayCurrency, rates } = useCurrency();
+
+  // Convert the USD bucket bounds into the display currency (rounded) so the chip
+  // labels and the amounts they apply match how prices are shown and compared.
+  const toDisplay = (usd: number) =>
+    usd === Infinity ? Infinity : convert(usd, "USD", displayCurrency, rates) ?? usd;
+  const priceChips = BASE_PRICE_CHIPS.map(({ min, max }) => {
+    const dMin = toDisplay(min);
+    const dMax = toDisplay(max);
+    const label =
+      min === 0
+        ? `Under ${formatMoney(dMax, displayCurrency)}`
+        : max === Infinity
+          ? `${formatMoney(dMin, displayCurrency)}+`
+          : `${formatMoney(dMin, displayCurrency)}–${formatMoney(dMax, displayCurrency)}`;
+    return { label, min: dMin, max: dMax };
+  });
+
   return (
     <div className="border border-line bg-bg-elevated">
       <div className="flex items-center justify-between px-4 h-11 border-b border-line">
@@ -102,6 +125,9 @@ export function FilterSidebar({
       <details className="border-b border-line group" open>
         <summary className="list-none flex items-center justify-between px-4 py-3 text-[13.5px] font-semibold cursor-pointer">
           Price
+          <span className="ml-auto mr-2 font-mono text-[11px] font-normal text-ink-dim">
+            {displayCurrency}
+          </span>
           <Chevron />
         </summary>
         <div className="px-4 pb-4 flex flex-col gap-2.5">
@@ -125,7 +151,7 @@ export function FilterSidebar({
             />
           </div>
           <div className="flex flex-wrap gap-1.5 mt-0.5">
-            {PRICE_CHIPS.map((chip) => {
+            {priceChips.map((chip) => {
               const active = priceMin === chip.min && priceMax === (chip.max === Infinity ? null : chip.max);
               return (
                 <button

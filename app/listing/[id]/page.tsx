@@ -14,7 +14,7 @@ import { getListingById } from "@/lib/listings";
 import { parseAiVerdict } from "@/lib/aiVerify";
 import { isListingSaved } from "@/lib/saved";
 import { createClient } from "@/lib/supabase/server";
-import { formatPrice } from "@/lib/format";
+import { Price } from "@/components/Price";
 import type { PhotoKind } from "@prisma/client";
 
 const PHOTO_KIND_LABELS: Record<PhotoKind, string> = {
@@ -129,7 +129,7 @@ export default async function ListingPage({
           </div>
 
           <div className="flex items-center gap-3 mt-3 mb-6">
-            <p className="font-mono text-amber text-2xl">{formatPrice(listing.price)}</p>
+            <Price amount={listing.price} currency={listing.currency} className="text-2xl" />
             {listing.aiVerified && (
               <span className="inline-flex items-center gap-1.5 border border-pass text-pass bg-pass/10 text-[11px] font-medium uppercase tracking-wide px-2.5 py-1 rounded-(--radius-tag)">
                 ✓ Verified

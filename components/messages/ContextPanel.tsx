@@ -1,10 +1,11 @@
 import Link from "next/link";
-import { formatPrice } from "@/lib/format";
+import { Price } from "@/components/Price";
 
 export function ContextPanel({
   listingId,
   title,
   price,
+  currency,
   category,
   spec,
   thumbnailUrl,
@@ -12,6 +13,7 @@ export function ContextPanel({
   listingId: string;
   title: string;
   price: number;
+  currency: string;
   category: string;
   spec: string;
   thumbnailUrl: string | null;
@@ -30,7 +32,7 @@ export function ContextPanel({
             <div className="w-full h-full grid-texture" />
           )}
         </div>
-        <p className="font-mono font-bold text-amber text-[15px]">{formatPrice(price)}</p>
+        <Price amount={price} currency={currency} className="font-bold text-[15px]" />
         <p className="text-[13px] font-medium mt-0.5 mb-0.5">{title}</p>
         <p className="font-mono text-[11px] text-ink-dim mb-3">
           {category} · {spec}

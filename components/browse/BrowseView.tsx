@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Category, Grade } from "@prisma/client";
 import { ListingCard } from "@/components/ListingCard";
 import { categoryLabels, categoryPluralLabels } from "@/lib/category";
 import type { ListingWithRelations } from "@/lib/listings";
 import { FilterSidebar } from "@/components/browse/FilterSidebar";
+import { useCurrency } from "@/components/CurrencyProvider";
 
 const PAGE_SIZE = 12;
 const MAX_WATT = 500;
@@ -36,6 +37,15 @@ export function BrowseView({
   initialCategory: CategoryTab;
   initialSearch: string;
 }) {
+  const { displayCurrency, toDisplay } = useCurrency();
+  // Price filters/sorts operate in the viewer's display currency, so a listing
+  // priced in ₱ and one in € compare on the same scale. If a rate is missing we
+  // fall back to the raw number (best effort) rather than dropping the listing.
+  const priceIn = useCallback(
+    (l: ListingWithRelations) => toDisplay(l.price, l.currency) ?? l.price,
+    [toDisplay]
+  );
+
   const [search, setSearch] = useState(initialSearch);
   const [category, setCategory] = useState<CategoryTab>(initialCategory);
   const [grades, setGrades] = useState<Grade[]>([]);
@@ -107,26 +117,34 @@ export function BrowseView({
         const country = l.location.split(", ").at(-1) ?? l.location;
         if (!countries.includes(country)) return false;
       }
-      if (priceMin != null && l.price < priceMin) return false;
-      if (priceMax != null && l.price > priceMax) return false;
+      if (priceMin != null && priceIn(l) < priceMin) return false;
+      if (priceMax != null && priceIn(l) > priceMax) return false;
       if (l.wattageDraw > 0 && l.wattageDraw > maxWatt) return false;
       if (verifiedOnly && !l.aiVerified) return false;
       return true;
     });
-  }, [listings, search, category, grades, countries, priceMin, priceMax, maxWatt, verifiedOnly]);
+  }, [listings, search, category, grades, countries, priceMin, priceMax, maxWatt, verifiedOnly, priceIn]);
 
   const sorted = useMemo(() => {
     const arr = [...filtered];
-    if (sort === "price-asc") arr.sort((a, b) => a.price - b.price);
-    else if (sort === "price-desc") arr.sort((a, b) => b.price - a.price);
+    if (sort === "price-asc") arr.sort((a, b) => priceIn(a) - priceIn(b));
+    else if (sort === "price-desc") arr.sort((a, b) => priceIn(b) - priceIn(a));
     else if (sort === "bench-desc") arr.sort((a, b) => b.benchmarkScore - a.benchmarkScore);
     else arr.sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
     return arr;
-  }, [filtered, sort]);
+  }, [filtered, sort, priceIn]);
 
   useEffect(() => {
     setPage(1);
   }, [search, category, grades, countries, priceMin, priceMax, maxWatt, verifiedOnly, sort]);
+
+  // Price filter values are amounts in the display currency; when the viewer
+  // switches currency those numbers would silently mean something else, so clear
+  // them to avoid a misleading filter.
+  useEffect(() => {
+    setPriceMin(null);
+    setPriceMax(null);
+  }, [displayCurrency]);
 
   // A navbar search while already on /browse re-renders this component with a
   // new `q` param but doesn't remount it, so mirror the incoming value into
