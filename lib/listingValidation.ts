@@ -1,12 +1,16 @@
 import { Category, type Grade } from "@prisma/client";
 import { categoryDiagnosticTier } from "@/lib/category";
+import { isSupportedCurrency } from "@/lib/currency";
 
 export const MAX_TITLE_LEN = 120;
 export const MAX_SPEC_LEN = 120;
 export const MAX_LOCATION_LEN = 120;
 export const MAX_DESCRIPTION_LEN = 2000;
 export const MAX_BENCHMARK_LABEL_LEN = 60;
-export const MAX_PRICE = 1_000_000;
+// Currency-relative: the cap is generous enough for weaker-unit currencies (e.g.
+// millions of IDR/KRW for a high-value part), since `price` is in the listing's
+// own currency, not USD.
+export const MAX_PRICE = 1_000_000_000;
 export const MAX_WATTAGE = 5000;
 export const MAX_BENCHMARK_SCORE = 10_000_000;
 
@@ -24,6 +28,7 @@ export type ListingFields = {
   title: string;
   category: Category;
   price: number;
+  currency: string;
   grade: Grade;
   spec: string;
   location: string;
@@ -39,6 +44,7 @@ export function parseListingFields(formData: FormData): { fields: ListingFields 
   const title = str(formData, "title");
   const categoryRaw = str(formData, "category");
   const price = num(formData, "price");
+  const currency = str(formData, "currency");
   const spec = str(formData, "spec");
   const location = str(formData, "location");
   const description = str(formData, "description");
@@ -53,6 +59,9 @@ export function parseListingFields(formData: FormData): { fields: ListingFields 
   }
   if (gradeRaw !== "A" && gradeRaw !== "B" && gradeRaw !== "C") {
     return { error: "Please choose a valid condition." };
+  }
+  if (!isSupportedCurrency(currency)) {
+    return { error: "Please choose a valid currency." };
   }
 
   const tier = categoryDiagnosticTier[categoryRaw as Category];
@@ -74,7 +83,7 @@ export function parseListingFields(formData: FormData): { fields: ListingFields 
     return { error: "Price, benchmark score, and wattage draw must be numbers." };
   }
   if (price < 0 || price > MAX_PRICE) {
-    return { error: `Price must be between 0 and ${MAX_PRICE.toLocaleString()}.` };
+    return { error: `Price is out of range.` };
   }
   if (hasWattage && (wattageDraw < 0 || wattageDraw > MAX_WATTAGE)) {
     return { error: `Wattage draw must be between 0 and ${MAX_WATTAGE}.` };
@@ -97,6 +106,7 @@ export function parseListingFields(formData: FormData): { fields: ListingFields 
       title,
       category: categoryRaw as Category,
       price,
+      currency,
       grade: gradeRaw as Grade,
       spec,
       location,

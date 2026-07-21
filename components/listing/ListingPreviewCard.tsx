@@ -3,10 +3,12 @@
 import { useState } from "react";
 import type { Grade } from "@prisma/client";
 import { gradeColor, gradeLabel } from "@/lib/grade";
+import { formatMoney } from "@/lib/format";
 
 export type PreviewFields = {
   title: string;
   price: string;
+  currency: string;
   spec: string;
   location: string;
   grade: Grade | null;
@@ -97,7 +99,7 @@ export function ListingPreviewCard({
             {fields.title || "Your listing title"}
           </h3>
           <p className="font-mono text-amber text-[14px] whitespace-nowrap">
-            {fields.price ? (Number.isNaN(price) ? "$—" : `$${price.toLocaleString()}`) : "$—"}
+            {fields.price && !Number.isNaN(price) ? formatMoney(price, fields.currency) : "—"}
           </p>
         </div>
 

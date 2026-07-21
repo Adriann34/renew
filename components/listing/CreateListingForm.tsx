@@ -23,25 +23,31 @@ import {
   categoryTitlePlaceholder,
 } from "@/lib/category";
 import { gradeLabel as conditionLabels } from "@/lib/grade";
+import { CURRENCIES } from "@/lib/currency";
 
 const initialState: CreateListingState = { error: null };
 
 const inputClass =
   "w-full border border-line bg-bg-inset px-3 h-10 text-[14px] text-ink placeholder:text-ink-dim outline-none focus:border-amber transition-colors";
+const currencySelectClass =
+  "shrink-0 w-24 border border-line bg-bg-inset px-2.5 h-10 text-[14px] text-ink outline-none focus:border-amber transition-colors appearance-none cursor-pointer";
 const labelClass = "block text-[12px] text-ink-dim mb-1.5";
 
 export function CreateListingForm({
   category,
   initialLocation = "",
+  initialCurrency = "USD",
 }: {
   category: Category;
   initialLocation?: string;
+  initialCurrency?: string;
 }) {
   const [state, formAction, isPending] = useActionState(createListingAction, initialState);
   const [photos, setPhotos] = useState<PhotosState>(emptyPhotosState);
   const [fields, setFields] = useState<PreviewFields>({
     title: "",
     price: "",
+    currency: initialCurrency,
     spec: "",
     location: initialLocation,
     grade: null,
@@ -154,18 +160,36 @@ export function CreateListingForm({
 
             <div>
               <label htmlFor="price" className={labelClass}>
-                Price ($)
+                Price
               </label>
-              <input
-                id="price"
-                name="price"
-                type="number"
-                min={0}
-                required
-                placeholder="1450"
-                className={inputClass}
-                onChange={(e) => patchFields({ price: e.target.value })}
-              />
+              <div className="flex gap-2">
+                <select
+                  name="currency"
+                  aria-label="Currency"
+                  value={fields.currency}
+                  onChange={(e) => patchFields({ currency: e.target.value })}
+                  className={currencySelectClass}
+                >
+                  {CURRENCIES.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.code}
+                    </option>
+                  ))}
+                </select>
+                <input
+                  id="price"
+                  name="price"
+                  type="number"
+                  min={0}
+                  required
+                  placeholder="1450"
+                  className={inputClass}
+                  onChange={(e) => patchFields({ price: e.target.value })}
+                />
+              </div>
+              <p className="text-[11.5px] text-ink-dim mt-1">
+                Set the price in your own currency — buyers see it converted, but this stays the real asking price.
+              </p>
             </div>
 
             <div>

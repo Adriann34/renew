@@ -146,6 +146,7 @@ export async function updateListingAction(
   const {
     title,
     price,
+    currency,
     grade,
     spec,
     location,
@@ -260,6 +261,7 @@ export async function updateListingAction(
         data: {
           title,
           price,
+          currency,
           grade,
           spec,
           location,

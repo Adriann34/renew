@@ -43,7 +43,11 @@ export default async function SellCategoryPage({
           faster and for better prices.
         </p>
 
-        <CreateListingForm category={category} initialLocation={dbUser?.location ?? ""} />
+        <CreateListingForm
+          category={category}
+          initialLocation={dbUser?.location ?? ""}
+          initialCurrency={dbUser?.preferredCurrency ?? "USD"}
+        />
       </div>
 
       <Footer />
