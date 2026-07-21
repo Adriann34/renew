@@ -47,6 +47,10 @@ model User {
   phone               String?
   location            String?
   avatarUrl           String?
+  // ISO 4217 code of the currency this user prefers to SEE prices in (display only —
+  // never changes what a listing is actually priced in). Null = fall back to
+  // auto-detect (Accept-Language) then USD. See lib/currency.ts.
+  preferredCurrency   String?
   createdAt           DateTime       @default(now())
   listings            Listing[]
   saved               SavedListing[]
@@ -59,7 +63,12 @@ model Listing {
   id              String         @id @default(uuid())
   title           String
   category        Category
+  // The seller's real asking price, in WHOLE major units of `currency` (e.g. 12000
+  // means ₱12,000 when currency = "PHP", $450 when "USD"). This is the source of
+  // truth — buyers may see an approximate conversion, but this number is what the
+  // seller wants. Existing rows predate multi-currency and are all USD (see migration default).
   price           Int
+  currency        String         @default("USD") // ISO 4217; validated against lib/currency.ts
   grade           Grade
   spec            String
   location        String
