@@ -42,44 +42,35 @@ export const metadata: Metadata = {
 export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  // Resolve which currency to show prices in, and load approximate FX rates. The
-  // cookie (set by the switcher / settings) short-circuits everything, so the auth
-  // + DB lookup for a saved preference only runs for cookieless visitors.
-  const cookieStore = await cookies();
-  const cookieCurrency = cookieStore.get(CURRENCY_COOKIE)?.value ?? null;
+  // Resolve which currency to show prices in, and load approximate FX rates.
+  //
+  // Signed-in users: their DB preference is authoritative and follows them across
+  // devices (the cookie is ignored, so a stale cookie on another device can't
+  // override a preference set elsewhere). Anonymous visitors: the per-device cookie,
+  // then geolocation. Everything falls back to geo → USD.
+  //
+  // Vercel injects the visitor's geolocated country at the edge; absent locally (dev)
+  // and for unknown IPs, so those resolve to USD unless a preference/cookie is set.
+  const country = (await headers()).get("x-vercel-ip-country");
 
-  let signedIn = false;
-  let preferred: string | null = null;
-  if (!cookieCurrency) {
-    const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-    signedIn = !!user;
-    if (user) {
-      // A saved account preference overrides auto-detect (and follows the user
-      // across devices). A DB hiccup here just falls through to auto-detect.
-      preferred = await prisma.user
-        .findUnique({ where: { id: user.id }, select: { preferredCurrency: true } })
-        .then((u) => u?.preferredCurrency ?? null)
-        .catch(() => null);
-    }
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const signedIn = !!user;
+
+  let displayCurrency: string;
+  if (user) {
+    const preferred = await prisma.user
+      .findUnique({ where: { id: user.id }, select: { preferredCurrency: true } })
+      .then((u) => u?.preferredCurrency ?? null)
+      .catch(() => null);
+    displayCurrency = resolveDisplayCurrency({ preferred, country });
   } else {
-    // Cookie already decided the currency; we still only persist for signed-in
-    // users, but savePreferredCurrencyAction re-checks auth itself, so a cheap
-    // "always allow the attempt" is fine here.
-    signedIn = true;
+    const cookieCurrency = (await cookies()).get(CURRENCY_COOKIE)?.value ?? null;
+    displayCurrency = resolveDisplayCurrency({ cookie: cookieCurrency, country });
   }
 
-  // Vercel injects the visitor's geolocated country at the edge. Absent locally
-  // (dev) and for unknown IPs → resolves to USD; a manual pick or account setting
-  // overrides it.
-  const country = (await headers()).get("x-vercel-ip-country");
-  const displayCurrency = resolveDisplayCurrency({
-    cookie: cookieCurrency,
-    preferred,
-    country,
-  });
   const rates = await getRates();
 
   return (

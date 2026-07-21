@@ -173,7 +173,6 @@ export function AccountView({
               phone={profile.phone ?? ""}
               location={profile.location ?? ""}
               avatarUrl={profile.avatarUrl}
-              preferredCurrency={profile.preferredCurrency ?? ""}
             />
           </>
         )}

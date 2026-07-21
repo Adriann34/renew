@@ -30,16 +30,25 @@ export function CurrencyProvider({
   canPersist: boolean;
   children: React.ReactNode;
 }) {
+  // Client-authoritative after mount: seeded once from the server-resolved value,
+  // then only the user's own choice (setDisplayCurrency) changes it. We deliberately
+  // do NOT re-sync to `initialDisplayCurrency` on prop changes — an unrelated action
+  // that revalidates the layout would otherwise clobber the currency the user just
+  // picked (e.g. back to USD when the geo header is absent, as on localhost).
   const [displayCurrency, setCurrency] = useState(initialDisplayCurrency);
 
   const setDisplayCurrency = useCallback(
     (code: string) => {
       setCurrency(code);
-      // Cookie is what the server reads on the next render to stay consistent (1yr).
-      document.cookie = `${CURRENCY_COOKIE}=${code}; path=/; max-age=31536000; samesite=lax`;
-      // Durably remember the choice on the account so it follows the user. Fire and
-      // forget — the cookie already made the change take effect locally.
-      if (canPersist) void savePreferredCurrencyAction(code);
+      if (canPersist) {
+        // Signed in: the account (DB) is the source of truth, read on every render
+        // and shared across devices. Fire-and-forget — the UI already updated.
+        void savePreferredCurrencyAction(code);
+      } else {
+        // Anonymous: no DB row, so remember the choice per-device via a cookie the
+        // server reads on the next render (1yr).
+        document.cookie = `${CURRENCY_COOKIE}=${code}; path=/; max-age=31536000; samesite=lax`;
+      }
     },
     [canPersist]
   );

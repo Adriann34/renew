@@ -11,6 +11,7 @@ import {
 } from "@/app/account/actions";
 import { AvatarUploadForm } from "@/components/account/AvatarUploadForm";
 import { CURRENCIES } from "@/lib/currency";
+import { useCurrency } from "@/components/CurrencyProvider";
 
 const inputClass =
   "w-full border border-line bg-bg-inset px-3 h-10 text-[14px] text-ink placeholder:text-ink-dim outline-none focus:border-amber transition-colors disabled:opacity-60";
@@ -26,16 +27,18 @@ export function SettingsPanel({
   phone,
   location,
   avatarUrl,
-  preferredCurrency,
 }: {
   email: string;
   name: string;
   phone: string;
   location: string;
   avatarUrl: string | null;
-  /** "" = no saved preference (auto-detect from browser locale). */
-  preferredCurrency: string;
 }) {
+  // Display currency is a live preference, not part of the "Save changes" flow:
+  // changing it applies instantly across the app (and persists) via the provider.
+  // Keeping it controlled by provider state also makes it immune to React 19's
+  // post-action form reset, which was reverting an uncontrolled <select>.
+  const { displayCurrency, setDisplayCurrency } = useCurrency();
   const [profileState, profileAction, profilePending] = useActionState(updateProfileAction, profileInitial);
   const [passwordState, passwordAction, passwordPending] = useActionState(updatePasswordAction, passwordInitial);
   const [deleteState, deleteActionFn, deletePending] = useActionState(deleteAccountAction, deleteInitial);
@@ -85,11 +88,10 @@ export function SettingsPanel({
               <label htmlFor="preferredCurrency" className={labelClass}>Display currency</label>
               <select
                 id="preferredCurrency"
-                name="preferredCurrency"
-                defaultValue={preferredCurrency}
+                value={displayCurrency}
+                onChange={(e) => setDisplayCurrency(e.target.value)}
                 className={inputClass}
               >
-                <option value="">Auto-detect</option>
                 {CURRENCIES.map((c) => (
                   <option key={c.code} value={c.code}>
                     {c.code} — {c.name}
@@ -97,7 +99,7 @@ export function SettingsPanel({
                 ))}
               </select>
               <p className="text-[11.5px] text-ink-dim mt-1">
-                Prices are shown converted into this currency. Sellers always set their own.
+                Applies instantly across the site. Sellers always set their own.
               </p>
             </div>
           </div>
