@@ -2,11 +2,13 @@
 
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { prisma } from "@/lib/prisma";
 import { compressImage } from "@/lib/image";
 import { ALLOWED_PHOTO_TYPES, storagePathFromUrl } from "@/lib/photoUpload";
+import { CURRENCY_COOKIE, isSupportedCurrency } from "@/lib/currency";
 
 const MAX_NAME_LEN = 80;
 const MAX_PHONE_LEN = 30;
@@ -36,25 +38,59 @@ export async function updateProfileAction(
   const name = str(formData, "name");
   const phone = str(formData, "phone");
   const location = str(formData, "location");
+  const currencyRaw = str(formData, "preferredCurrency");
 
   if (name.length > MAX_NAME_LEN || phone.length > MAX_PHONE_LEN || location.length > MAX_LOCATION_LEN) {
     return { error: "One or more fields exceed their maximum length." };
   }
+  // Unknown/blank currency clears the preference (falls back to auto-detect).
+  const preferredCurrency = isSupportedCurrency(currencyRaw) ? currencyRaw : null;
 
   await prisma.user.upsert({
     where: { id: user.id },
-    update: { name: name || null, phone: phone || null, location: location || null },
+    update: { name: name || null, phone: phone || null, location: location || null, preferredCurrency },
     create: {
       id: user.id,
       email: user.email!,
       name: name || null,
       phone: phone || null,
       location: location || null,
+      preferredCurrency,
     },
   });
 
+  // Mirror the choice into the cookie the layout reads, so it applies app-wide on
+  // this device immediately (not just after the next sign-in).
+  const jar = await cookies();
+  if (preferredCurrency) {
+    jar.set(CURRENCY_COOKIE, preferredCurrency, { path: "/", maxAge: 31536000, sameSite: "lax" });
+  } else {
+    jar.delete(CURRENCY_COOKIE);
+  }
+
   revalidatePath("/account");
   return { error: null, success: true };
+}
+
+/**
+ * Persist the viewer's display-currency choice (from the navbar switcher) to their
+ * account so it follows them across devices. Auth-checked and best-effort: the
+ * cookie set client-side already made the change take effect, so a failure here is
+ * non-fatal. No-ops for signed-out users.
+ */
+export async function savePreferredCurrencyAction(code: string): Promise<void> {
+  if (!isSupportedCurrency(code)) return;
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  await prisma.user
+    .update({ where: { id: user.id }, data: { preferredCurrency: code } })
+    .catch(() => {
+      // Non-fatal: the cookie already applied the choice on this device.
+    });
 }
 
 export type UpdateAvatarState = { error: string | null };

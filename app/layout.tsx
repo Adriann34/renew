@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
 import { Space_Grotesk, Inter, JetBrains_Mono } from "next/font/google";
+import { cookies, headers } from "next/headers";
 import "./globals.css";
+import { CurrencyProvider } from "@/components/CurrencyProvider";
+import { getRates } from "@/lib/exchangeRates";
+import { CURRENCY_COOKIE, resolveDisplayCurrency } from "@/lib/currency";
+import { createClient } from "@/lib/supabase/server";
+import { prisma } from "@/lib/prisma";
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -33,9 +39,46 @@ export const metadata: Metadata = {
   manifest: "/site.webmanifest",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  // Resolve which currency to show prices in, and load approximate FX rates. The
+  // cookie (set by the switcher / settings) short-circuits everything, so the auth
+  // + DB lookup for a saved preference only runs for cookieless visitors.
+  const cookieStore = await cookies();
+  const cookieCurrency = cookieStore.get(CURRENCY_COOKIE)?.value ?? null;
+
+  let signedIn = false;
+  let preferred: string | null = null;
+  if (!cookieCurrency) {
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    signedIn = !!user;
+    if (user) {
+      // A saved account preference overrides auto-detect (and follows the user
+      // across devices). A DB hiccup here just falls through to auto-detect.
+      preferred = await prisma.user
+        .findUnique({ where: { id: user.id }, select: { preferredCurrency: true } })
+        .then((u) => u?.preferredCurrency ?? null)
+        .catch(() => null);
+    }
+  } else {
+    // Cookie already decided the currency; we still only persist for signed-in
+    // users, but savePreferredCurrencyAction re-checks auth itself, so a cheap
+    // "always allow the attempt" is fine here.
+    signedIn = true;
+  }
+
+  const acceptLanguage = (await headers()).get("accept-language");
+  const displayCurrency = resolveDisplayCurrency({
+    cookie: cookieCurrency,
+    preferred,
+    acceptLanguage,
+  });
+  const rates = await getRates();
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -53,7 +96,13 @@ export default function RootLayout({
       <body
         className={`${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable} antialiased`}
       >
-        {children}
+        <CurrencyProvider
+          initialDisplayCurrency={displayCurrency}
+          rates={rates}
+          canPersist={signedIn}
+        >
+          {children}
+        </CurrencyProvider>
       </body>
     </html>
   );

@@ -26,6 +26,7 @@ export default async function AccountPage() {
     phone: dbUser?.phone ?? null,
     location: dbUser?.location ?? null,
     avatarUrl: dbUser?.avatarUrl ?? null,
+    preferredCurrency: dbUser?.preferredCurrency ?? null,
     createdAt: dbUser?.createdAt ?? new Date(user.created_at),
   };
 

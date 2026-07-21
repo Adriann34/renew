@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
+import { CurrencySwitcher } from "@/components/CurrencySwitcher";
 import { SearchBar } from "@/components/SearchBar";
 import { SignOutButton } from "@/components/auth/SignOutButton";
 import { createClient } from "@/lib/supabase/server";
@@ -34,6 +35,7 @@ export async function Navbar() {
         </nav>
 
         <div className="flex items-center gap-5 ml-auto">
+          <CurrencySwitcher />
           <ThemeToggle />
           {user ? (
             <>

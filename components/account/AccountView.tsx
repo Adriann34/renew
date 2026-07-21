@@ -22,6 +22,7 @@ export function AccountView({
     phone: string | null;
     location: string | null;
     avatarUrl: string | null;
+    preferredCurrency: string | null;
     createdAt: Date;
   };
   listings: ListingWithSaveCount[];
@@ -170,6 +171,7 @@ export function AccountView({
               phone={profile.phone ?? ""}
               location={profile.location ?? ""}
               avatarUrl={profile.avatarUrl}
+              preferredCurrency={profile.preferredCurrency ?? ""}
             />
           </>
         )}

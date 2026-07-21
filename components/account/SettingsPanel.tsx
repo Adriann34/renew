@@ -10,6 +10,7 @@ import {
   type DeleteAccountState,
 } from "@/app/account/actions";
 import { AvatarUploadForm } from "@/components/account/AvatarUploadForm";
+import { CURRENCIES } from "@/lib/currency";
 
 const inputClass =
   "w-full border border-line bg-bg-inset px-3 h-10 text-[14px] text-ink placeholder:text-ink-dim outline-none focus:border-amber transition-colors disabled:opacity-60";
@@ -25,12 +26,15 @@ export function SettingsPanel({
   phone,
   location,
   avatarUrl,
+  preferredCurrency,
 }: {
   email: string;
   name: string;
   phone: string;
   location: string;
   avatarUrl: string | null;
+  /** "" = no saved preference (auto-detect from browser locale). */
+  preferredCurrency: string;
 }) {
   const [profileState, profileAction, profilePending] = useActionState(updateProfileAction, profileInitial);
   const [passwordState, passwordAction, passwordPending] = useActionState(updatePasswordAction, passwordInitial);
@@ -76,6 +80,25 @@ export function SettingsPanel({
             <div>
               <label htmlFor="location" className={labelClass}>Location</label>
               <input id="location" name="location" type="text" defaultValue={location} placeholder="Manila, Philippines" className={inputClass} />
+            </div>
+            <div>
+              <label htmlFor="preferredCurrency" className={labelClass}>Display currency</label>
+              <select
+                id="preferredCurrency"
+                name="preferredCurrency"
+                defaultValue={preferredCurrency}
+                className={inputClass}
+              >
+                <option value="">Auto-detect</option>
+                {CURRENCIES.map((c) => (
+                  <option key={c.code} value={c.code}>
+                    {c.code} — {c.name}
+                  </option>
+                ))}
+              </select>
+              <p className="text-[11.5px] text-ink-dim mt-1">
+                Prices are shown converted into this currency. Sellers always set their own.
+              </p>
             </div>
           </div>
           <div className="flex justify-end">
