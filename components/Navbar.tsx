@@ -1,8 +1,7 @@
 import Link from "next/link";
 import { ThemeToggle } from "@/components/ThemeToggle";
-import { CurrencySwitcher } from "@/components/CurrencySwitcher";
+import { AccountMenu } from "@/components/AccountMenu";
 import { SearchBar } from "@/components/SearchBar";
-import { SignOutButton } from "@/components/auth/SignOutButton";
 import { createClient } from "@/lib/supabase/server";
 import { getUnreadConversationCount } from "@/lib/conversations";
 
@@ -35,7 +34,6 @@ export async function Navbar() {
         </nav>
 
         <div className="flex items-center gap-5 ml-auto">
-          <CurrencySwitcher />
           {user ? (
             <>
               <Link
@@ -59,13 +57,7 @@ export async function Navbar() {
                   </span>
                 )}
               </Link>
-              <Link
-                href="/account"
-                className="hidden sm:block text-[13px] text-ink-dim hover:text-ink transition-colors"
-              >
-                Account
-              </Link>
-              <SignOutButton />
+              <AccountMenu />
             </>
           ) : (
             <a
