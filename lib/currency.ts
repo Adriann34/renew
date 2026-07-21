@@ -61,9 +61,8 @@ export function getCurrencyMeta(code: string | null | undefined): CurrencyMeta {
 }
 
 // Country (ISO 3166-1 alpha-2) → currency, used to auto-detect a viewer's display
-// currency from their Accept-Language header. Only regions whose currency we
-// support are listed; anything else falls through to USD. Eurozone members all map
-// to EUR.
+// currency from their geolocated country. Only regions whose currency we support
+// are listed; anything else falls through to USD. Eurozone members all map to EUR.
 const REGION_CURRENCY: Record<string, string> = {
   US: "USD",
   GB: "GBP",
@@ -96,44 +95,37 @@ const REGION_CURRENCY: Record<string, string> = {
 };
 
 /**
- * Best-effort guess of a display currency from an `Accept-Language` header, e.g.
- * "en-PH,en;q=0.9" → PHP. Reads the region subtag of the first well-formed locale
- * that has a supported currency. Falls back to USD.
+ * Auto-detect a display currency from an ISO 3166-1 alpha-2 country code (e.g. the
+ * `x-vercel-ip-country` geo header). Falls back to USD for unknown/unsupported
+ * countries or a missing code. We deliberately use physical location rather than
+ * the browser's Accept-Language: most users leave their OS in English regardless of
+ * where they are, so language would collapse almost everyone to USD.
  */
-export function currencyFromAcceptLanguage(header: string | null | undefined): string {
-  if (!header) return DEFAULT_CURRENCY;
-  const tags = header
-    .split(",")
-    .map((part) => part.split(";")[0].trim())
-    .filter(Boolean);
-  for (const tag of tags) {
-    // Region is the 2-letter subtag after the language, e.g. en-PH, zh-Hant-HK.
-    const region = tag.split("-").find((seg) => /^[A-Za-z]{2}$/.test(seg) && seg === seg.toUpperCase());
-    if (region && REGION_CURRENCY[region]) return REGION_CURRENCY[region];
-  }
-  return DEFAULT_CURRENCY;
+export function currencyFromCountry(country: string | null | undefined): string {
+  if (!country) return DEFAULT_CURRENCY;
+  return REGION_CURRENCY[country.toUpperCase()] ?? DEFAULT_CURRENCY;
 }
 
 /**
  * Resolve the currency a viewer should SEE prices in. Precedence:
  *   1. explicit cookie choice (navbar switcher / saved setting) — most specific
- *   2. their saved account preference
- *   3. auto-detect from Accept-Language
+ *   2. their saved account preference — overrides geo auto-detect
+ *   3. geolocation auto-detect (country → currency)
  *   4. USD
  * Invalid/unsupported values at any level are skipped.
  */
 export function resolveDisplayCurrency({
   cookie,
   preferred,
-  acceptLanguage,
+  country,
 }: {
   cookie?: string | null;
   preferred?: string | null;
-  acceptLanguage?: string | null;
+  country?: string | null;
 }): string {
   if (isSupportedCurrency(cookie)) return cookie;
   if (isSupportedCurrency(preferred)) return preferred;
-  return currencyFromAcceptLanguage(acceptLanguage);
+  return currencyFromCountry(country);
 }
 
 export const CURRENCY_COOKIE = "renew-currency";

@@ -71,11 +71,14 @@ export default async function RootLayout({
     signedIn = true;
   }
 
-  const acceptLanguage = (await headers()).get("accept-language");
+  // Vercel injects the visitor's geolocated country at the edge. Absent locally
+  // (dev) and for unknown IPs → resolves to USD; a manual pick or account setting
+  // overrides it.
+  const country = (await headers()).get("x-vercel-ip-country");
   const displayCurrency = resolveDisplayCurrency({
     cookie: cookieCurrency,
     preferred,
-    acceptLanguage,
+    country,
   });
   const rates = await getRates();
 

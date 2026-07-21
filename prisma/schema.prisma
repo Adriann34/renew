@@ -49,7 +49,7 @@ model User {
   avatarUrl           String?
   // ISO 4217 code of the currency this user prefers to SEE prices in (display only —
   // never changes what a listing is actually priced in). Null = fall back to
-  // auto-detect (Accept-Language) then USD. See lib/currency.ts.
+  // geolocation auto-detect, then USD. See lib/currency.ts.
   preferredCurrency   String?
   createdAt           DateTime       @default(now())
   listings            Listing[]
