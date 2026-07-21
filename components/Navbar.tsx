@@ -36,7 +36,6 @@ export async function Navbar() {
 
         <div className="flex items-center gap-5 ml-auto">
           <CurrencySwitcher />
-          <ThemeToggle />
           {user ? (
             <>
               <Link
@@ -76,6 +75,7 @@ export async function Navbar() {
               Sign in
             </a>
           )}
+          <ThemeToggle />
           <Link
             href="/sell"
             className="bg-amber text-bg-inset text-[13px] font-medium px-4 h-9 flex items-center rounded-(--radius-tag) hover:bg-amber/90 transition-colors"

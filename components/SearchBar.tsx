@@ -28,7 +28,7 @@ export function SearchBar() {
     <form
       onSubmit={handleSubmit}
       role="search"
-      className="hidden md:flex flex-1 max-w-md items-center border border-line bg-bg-inset px-3 h-9 focus-within:border-ink-dim transition-colors"
+      className="hidden md:flex flex-1 max-w-sm items-center border border-line bg-bg-inset px-3 h-9 focus-within:border-ink-dim transition-colors"
     >
       <span className="text-ink-dim text-xs font-mono">⌕</span>
       <input
