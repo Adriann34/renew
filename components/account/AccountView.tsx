@@ -15,6 +15,7 @@ export function AccountView({
   profile,
   listings,
   saved,
+  initialTab = "listings",
 }: {
   profile: {
     name: string | null;
@@ -27,8 +28,9 @@ export function AccountView({
   };
   listings: ListingWithSaveCount[];
   saved: ListingWithRelations[];
+  initialTab?: Tab;
 }) {
-  const [tab, setTab] = useState<Tab>("listings");
+  const [tab, setTab] = useState<Tab>(initialTab);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 
   const displayName = profile.name || profile.email;

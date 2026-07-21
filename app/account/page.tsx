@@ -7,7 +7,19 @@ import { getSavedListings } from "@/lib/saved";
 import { createClient } from "@/lib/supabase/server";
 import { prisma } from "@/lib/prisma";
 
-export default async function AccountPage() {
+const ACCOUNT_TABS = ["listings", "saved", "settings"] as const;
+type AccountTab = (typeof ACCOUNT_TABS)[number];
+
+export default async function AccountPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ tab?: string }>;
+}) {
+  const { tab } = await searchParams;
+  const initialTab: AccountTab = ACCOUNT_TABS.includes(tab as AccountTab)
+    ? (tab as AccountTab)
+    : "listings";
+
   const supabase = await createClient();
   const {
     data: { user },
@@ -41,7 +53,7 @@ export default async function AccountPage() {
         <h1 className="font-display font-semibold text-2xl">My account</h1>
       </div>
 
-      <AccountView profile={profile} listings={listings} saved={saved} />
+      <AccountView profile={profile} listings={listings} saved={saved} initialTab={initialTab} />
 
       <Footer />
     </main>
